@@ -1,0 +1,34 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "baseUrl": ".",
+    "paths": {
+      "@pdftools/contracts": ["./packages/contracts/src/index.ts"],
+      "@pdftools/contracts/tools": ["./packages/contracts/src/tools/index.ts"],
+      "@pdftools/contracts/errors": ["./packages/contracts/src/errors.ts"],
+      "@pdftools/contracts/plans": ["./packages/contracts/src/plans.ts"],
+      "@pdftools/contracts/api": ["./packages/contracts/src/api.ts"],
+      "@pdftools/config": ["./packages/config/src/index.ts"],
+      "@pdftools/logger": ["./packages/logger/src/index.ts"],
+      "@pdftools/errors": ["./packages/errors/src/index.ts"],
+      "@pdftools/db": ["./packages/db/src/index.ts"],
+      "@pdftools/db/schema": ["./packages/db/src/schema.ts"],
+      "@pdftools/queue": ["./packages/queue/src/index.ts"],
+      "@pdftools/engines": ["./packages/engines/src/index.ts"],
+      "@pdftools/worker-shared": ["./workers/shared/src/index.ts"]
+    }
+  },
+  "include": [
+    "packages/*/src/**/*.ts",
+    "apps/api/src/**/*.ts",
+    "apps/web/src/**/*.ts",
+    "apps/web/src/**/*.tsx",
+    "workers/*/src/**/*.ts",
+    "scripts/**/*.ts",
+    "e2e/**/*.ts",
+    "vite.config.ts",
+    "playwright.config.ts"
+  ],
+  "exclude": ["**/node_modules", "**/dist", "apps/web/dist"]
+}

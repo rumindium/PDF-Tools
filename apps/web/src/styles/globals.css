@@ -1,0 +1,5914 @@
+/*
+ * Design tokens and the handful of layout utilities the app uses.
+ *
+ * The palette is **Auth Platform's**, variable for variable (`web/app/globals.css` there), because this app now
+ * wears the same shell as the platform and Procurement: one indigo primary, the same warm neutral background, the
+ * same hairline border and the same sidebar tokens. Reading them together is the point — a tenant that colours its
+ * workspace sees this app move with it instead of sitting three shades off. The names the components already use
+ * (`--surface`, `--accent`, `--text-muted`…) are kept, so the palette could be swapped again without touching a
+ * single component.
+ *
+ * Everything is expressed with variables so a future theme (or tenant branding) changes one block rather than every
+ * component, and so the components stay readable without a utility-class build step.
+ */
+
+:root {
+  --bg: #f8f9fc;
+  --surface: #ffffff;
+  --surface-2: #f1f3f9;
+  --border: #e5e7eb;
+  --border-strong: #d1d5db;
+  --text: #1a1d2e;
+  --text-muted: #6b7280;
+  --text-faint: #9ca3af;
+  --accent: #6366f1;
+  --accent-weak: #eef2ff;
+  --accent-text: #4f46e5;
+  --success: #10b981;
+  --success-weak: #ecfdf5;
+  --warning: #b45309;
+  --warning-weak: #fffbeb;
+  --danger: #ef4444;
+  --danger-weak: #fef2f2;
+  --radius-sm: 8px;
+  --radius: 12px;
+  --radius-lg: 16px;
+  --shadow-sm: 0 1px 3px rgba(16, 24, 40, 0.04), 0 1px 2px -1px rgba(16, 24, 40, 0.04);
+  --shadow: 0 4px 12px -2px rgba(16, 24, 40, 0.06), 0 2px 4px -2px rgba(16, 24, 40, 0.04);
+  --shadow-lg: 0 18px 40px -18px rgba(26, 29, 46, 0.28);
+  --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, monospace;
+
+  /* Sidebar tokens — the platform's names, so the two sidebars are one design rather than two that resemble it. */
+  --sidebar-bg: #ffffff;
+  --sidebar-fg: #374151;
+  --sidebar-fg-muted: #6b7280;
+  --sidebar-fg-faint: #9ca3af;
+  --sidebar-border: #f0f1f3;
+  --sidebar-hover: #f3f4f6;
+  --sidebar-active: #eef2ff;
+
+  /* Wording the UI repeats; keeping them here means the plan copy and the API copy cannot drift. */
+  --header-height: 64px;
+  --sidebar-w: 264px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0f1117;
+    --surface: #1a1d2e;
+    --surface-2: #1f2233;
+    --border: rgba(255, 255, 255, 0.08);
+    --border-strong: rgba(255, 255, 255, 0.16);
+    --text: #e5e7eb;
+    --text-muted: #9aa4b1;
+    --text-faint: #6b7280;
+    --accent: #818cf8;
+    --accent-weak: rgba(99, 102, 241, 0.16);
+    --accent-text: #c7d2fe;
+    --success: #34d399;
+    --success-weak: rgba(16, 185, 129, 0.14);
+    --warning: #f0b429;
+    --warning-weak: rgba(240, 180, 41, 0.14);
+    --danger: #f87171;
+    --danger-weak: rgba(239, 68, 68, 0.16);
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.4);
+    --shadow: 0 6px 20px rgba(0, 0, 0, 0.45);
+    --shadow-lg: 0 18px 40px -18px rgba(0, 0, 0, 0.7);
+    --sidebar-bg: #13151f;
+    --sidebar-fg: #d1d5db;
+    --sidebar-fg-muted: #9ca3af;
+    --sidebar-fg-faint: #6b7280;
+    --sidebar-border: rgba(255, 255, 255, 0.07);
+    --sidebar-hover: rgba(255, 255, 255, 0.05);
+    --sidebar-active: rgba(99, 102, 241, 0.18);
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-size: 15px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  margin: 0;
+  line-height: 1.25;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+}
+
+p {
+  margin: 0;
+}
+
+a {
+  color: var(--accent-text);
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+/* ── Layout primitives ─────────────────────────────────────────────────── */
+
+.container {
+  width: 100%;
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+.page {
+  padding: 4px 0 24px;
+}
+
+/* The landing is the one page allowed to be wider than a form: its job is a first impression, not a field. */
+.container-wide {
+  max-width: 1420px;
+}
+
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.stack-sm {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.row-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.wrap {
+  flex-wrap: wrap;
+}
+
+.grow {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.grid-tools {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(248px, 1fr));
+  gap: 14px;
+}
+
+.grid-two {
+  display: grid;
+  grid-template-columns: minmax(0, 1.55fr) minmax(280px, 1fr);
+  gap: 20px;
+  align-items: start;
+}
+
+@media (max-width: 900px) {
+  .grid-two {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* ── Type ──────────────────────────────────────────────────────────────── */
+
+.muted {
+  color: var(--text-muted);
+}
+
+.faint {
+  color: var(--text-faint);
+}
+
+.small {
+  font-size: 13px;
+}
+
+.tiny {
+  font-size: 12px;
+}
+
+.mono {
+  font-family: var(--mono);
+  font-size: 12.5px;
+}
+
+.strong {
+  font-weight: 600;
+}
+
+.truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.label {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-faint);
+}
+
+/* ── Cards ─────────────────────────────────────────────────────────────── */
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+}
+
+.card-pad {
+  padding: 18px;
+}
+
+.card-hover {
+  transition: transform 0.14s ease, box-shadow 0.14s ease, border-color 0.14s ease;
+}
+
+.card-hover:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow);
+  border-color: var(--border-strong);
+}
+
+/* ── Controls ──────────────────────────────────────────────────────────── */
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border-radius: var(--radius);
+  border: 1px solid transparent;
+  padding: 9px 14px;
+  font-size: 14px;
+  font-weight: 560;
+  cursor: pointer;
+  transition: background 0.12s ease, border-color 0.12s ease, opacity 0.12s ease;
+  white-space: nowrap;
+}
+
+.btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.btn-primary {
+  background: var(--accent);
+  color: #fff;
+}
+
+.btn-primary:hover:not(:disabled) {
+  filter: brightness(1.06);
+}
+
+.btn-secondary {
+  background: var(--surface);
+  border-color: var(--border-strong);
+  color: var(--text);
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background: var(--surface-2);
+}
+
+.btn-ghost {
+  background: transparent;
+  color: var(--text-muted);
+}
+
+.btn-ghost:hover:not(:disabled) {
+  background: var(--surface-2);
+  color: var(--text);
+}
+
+.btn-sm {
+  padding: 6px 10px;
+  font-size: 13px;
+}
+
+/*
+ * One row of the header's account menu (`components/layout/account-menu.tsx`).
+ *
+ * An `<a>` and a `<button>` share it deliberately — the links and "Sign out" are the same kind of thing to the person
+ * reading the menu, and two rules that have to be kept in step is how one of them ends up looking like a different
+ * kind of control.
+ */
+.menu-item {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding: 8px 10px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-size: 14px;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.menu-item:hover:not(:disabled) {
+  background: var(--surface-2);
+  text-decoration: none;
+}
+
+.menu-item:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.input,
+.select,
+.textarea {
+  width: 100%;
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius);
+  padding: 9px 11px;
+  font-size: 14px;
+}
+
+.input:focus,
+.select:focus,
+.textarea:focus {
+  outline: 2px solid var(--accent-weak);
+  border-color: var(--accent);
+}
+
+.textarea {
+  min-height: 84px;
+  resize: vertical;
+  font-family: var(--mono);
+  font-size: 13px;
+}
+
+.checkbox {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--accent);
+}
+
+/* ── Dropzone ──────────────────────────────────────────────────────────── */
+
+.dropzone {
+  /* The zone is a `<button>` so it can be activated from the keyboard; a button is inline-block by default and
+     would shrink to its text, so it has to be told to fill the row like the div it replaced. */
+  display: block;
+  width: 100%;
+  border: 1.5px dashed var(--border-strong);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  padding: 30px 24px;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color 0.14s ease, background 0.14s ease;
+}
+
+.dropzone:hover,
+.dropzone[data-active="true"] {
+  border-color: var(--accent);
+  background: var(--accent-weak);
+}
+
+.dropzone[data-disabled="true"] {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* The zone's glyph, in the accent so it belongs to the same family as the card heading above it. */
+.dropzone-icon {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  margin-bottom: 2px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--accent) 14%, var(--surface));
+  color: var(--accent-text);
+}
+
+/* Compact, the zone is a strip above a list that already has the user's attention: no room for an illustration. */
+.dropzone[data-compact="true"] .dropzone-icon {
+  display: none;
+}
+
+.file-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+/* ── Badges and alerts ─────────────────────────────────────────────────── */
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border-radius: 999px;
+  padding: 2px 9px;
+  font-size: 12px;
+  font-weight: 600;
+  border: 1px solid transparent;
+}
+
+.badge-neutral {
+  background: var(--surface-2);
+  color: var(--text-muted);
+  border-color: var(--border);
+}
+
+.badge-accent {
+  background: var(--accent-weak);
+  color: var(--accent-text);
+}
+
+.badge-success {
+  background: var(--success-weak);
+  color: var(--success);
+}
+
+.badge-warning {
+  background: var(--warning-weak);
+  color: var(--warning);
+}
+
+.badge-danger {
+  background: var(--danger-weak);
+  color: var(--danger);
+}
+
+.alert {
+  border-radius: var(--radius);
+  padding: 11px 13px;
+  font-size: 13.5px;
+  border: 1px solid transparent;
+}
+
+.alert-danger {
+  background: var(--danger-weak);
+  color: var(--danger);
+  border-color: color-mix(in srgb, var(--danger) 30%, transparent);
+}
+
+.alert-warning {
+  background: var(--warning-weak);
+  color: var(--warning);
+  border-color: color-mix(in srgb, var(--warning) 30%, transparent);
+}
+
+.alert-info {
+  background: var(--accent-weak);
+  color: var(--accent-text);
+  border-color: color-mix(in srgb, var(--accent) 30%, transparent);
+}
+
+/* ── Progress ──────────────────────────────────────────────────────────── */
+
+.bar {
+  height: 8px;
+  border-radius: 999px;
+  background: var(--surface-2);
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+
+.bar > span {
+  display: block;
+  height: 100%;
+  background: var(--accent);
+  transition: width 0.3s ease;
+}
+
+.bar[data-state="done"] > span {
+  background: var(--success);
+}
+
+.bar[data-state="failed"] > span {
+  background: var(--danger);
+}
+
+/* ── Timeline (job events) ─────────────────────────────────────────────── */
+
+.timeline {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.timeline li {
+  position: relative;
+  padding: 0 0 12px 20px;
+  border-left: 1px solid var(--border);
+  margin-left: 4px;
+}
+
+.timeline li:last-child {
+  border-left-color: transparent;
+  padding-bottom: 0;
+}
+
+.timeline li::before {
+  content: "";
+  position: absolute;
+  left: -4.5px;
+  top: 6px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--border-strong);
+}
+
+.timeline li[data-kind="done"]::before {
+  background: var(--success);
+}
+
+.timeline li[data-kind="failed"]::before {
+  background: var(--danger);
+}
+
+/* ── Misc ──────────────────────────────────────────────────────────────── */
+
+.spinner {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 2px solid color-mix(in srgb, var(--accent) 35%, transparent);
+  border-top-color: var(--accent);
+  animation: spin 0.7s linear infinite;
+  display: inline-block;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* SSO handoff diagram loader (`routes/sso.callback.tsx`): workspace → this app. Two nodes joined by a track with a
+   packet travelling between them, so the wait reads as a handoff in progress rather than a bare spinner. */
+.sso-handoff {
+  min-height: 60vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  text-align: center;
+  padding: 48px 20px;
+}
+
+.sso-handoff-diagram {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  margin-bottom: 8px;
+  color: var(--accent-text);
+}
+
+.sso-node {
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--accent-weak);
+  border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent);
+  animation: sso-node-pulse 1.6s ease-in-out infinite;
+}
+
+.sso-node-right {
+  animation-delay: 0.8s;
+  background: var(--surface);
+}
+
+@keyframes sso-node-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(0.94);
+    opacity: 0.75;
+  }
+}
+
+.sso-link {
+  position: relative;
+  width: 120px;
+  height: 2px;
+  overflow: visible;
+}
+
+.sso-link-track {
+  position: absolute;
+  inset: 0;
+  border-radius: 2px;
+  background: repeating-linear-gradient(90deg, var(--border-strong) 0 6px, transparent 6px 12px);
+  opacity: 0.8;
+}
+
+.sso-link-packet {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 25%, transparent);
+  transform: translate(-50%, -50%);
+  animation: sso-packet 1.4s ease-in-out infinite;
+}
+
+@keyframes sso-packet {
+  0% {
+    left: 0;
+    opacity: 0;
+  }
+  15% {
+    opacity: 1;
+  }
+  85% {
+    opacity: 1;
+  }
+  100% {
+    left: 100%;
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sso-node,
+  .sso-link-packet {
+    animation: none;
+  }
+}
+
+.skeleton {
+  background: linear-gradient(90deg, var(--surface-2), var(--border), var(--surface-2));
+  background-size: 200% 100%;
+  animation: shimmer 1.3s ease-in-out infinite;
+  border-radius: var(--radius-sm);
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.table th {
+  text-align: left;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-faint);
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--border);
+}
+
+.table td {
+  padding: 10px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+}
+
+.table tr:last-child td {
+  border-bottom: none;
+}
+
+.chips {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.chip {
+  border: 1px solid var(--border-strong);
+  background: var(--surface);
+  border-radius: 999px;
+  padding: 5px 12px;
+  font-size: 13px;
+  cursor: pointer;
+  color: var(--text-muted);
+}
+
+.chip[data-active="true"] {
+  background: var(--accent-weak);
+  border-color: var(--accent);
+  color: var(--accent-text);
+  font-weight: 600;
+}
+
+.hide-sm {
+  display: initial;
+}
+
+@media (max-width: 640px) {
+  .hide-sm {
+    display: none;
+  }
+}
+
+/*
+ * The placement canvas (`0-UI-DESIGN.md` §5).
+ *
+ * Three rules here are load-bearing rather than cosmetic:
+ *
+ * - `touch-action: none` on the surface: without it a drag scrolls the page on a touch device and the mark is never
+ *   placed, which reads as "the canvas does not work" rather than as a missing declaration.
+ * - `pointer-events: none` on the page image: the image is underneath every mark, and an image that took the pointer
+ *   would swallow the drag that starts on one.
+ * - the text mark's **dashed** border: its extent is an estimate (`estimateTextWidth`), so the outline says so. A solid
+ *   border would claim a precision about glyph widths that the browser does not have.
+ */
+
+.placement-wrap {
+  position: relative;
+  /*
+   * A **viewport**, not a container that grows with its contents. A zoomed page is wider and taller than the column it
+   * lives in, and a surface that expands the card to fit instead of scrolling inside it pushes the mark list — the
+   * numbers that are the same value as the drawing — off the bottom of the screen. `auto` rather than `scroll` so an
+   * unzoomed page has no scrollbar in it at all.
+   */
+  overflow: auto;
+  max-height: min(72vh, 940px);
+}
+
+.placement-empty {
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--radius);
+  background: var(--surface-2);
+  padding: 22px 16px;
+  text-align: center;
+}
+
+.placement-surface {
+  position: relative;
+  margin: 0 auto;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
+  touch-action: none;
+  user-select: none;
+  cursor: crosshair;
+  overflow: hidden;
+}
+
+.placement-surface:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.placement-page {
+  display: block;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+/* The marks are real buttons, so the browser's own button chrome has to be cleared before the box shows through. */
+.placement-mark {
+  position: absolute;
+  box-sizing: border-box;
+  appearance: none;
+  padding: 0;
+  margin: 0;
+  font: inherit;
+  text-align: left;
+  border: 1px solid var(--accent);
+  background: rgba(26, 115, 232, 0.08);
+  cursor: move;
+  border-radius: 2px;
+}
+
+.placement-mark:focus-visible {
+  outline: 2px solid var(--accent-text);
+  outline-offset: 1px;
+}
+
+.placement-mark-text {
+  border-style: dashed;
+  background: transparent;
+}
+
+.placement-mark-draw {
+  border-style: dotted;
+  background: transparent;
+  border-color: var(--text-faint);
+}
+
+.placement-mark-checkbox {
+  border-color: var(--success);
+  background: rgba(30, 142, 62, 0.1);
+}
+
+.placement-mark.is-selected {
+  border-color: var(--accent-text);
+  border-width: 2px;
+  background: rgba(26, 115, 232, 0.16);
+  z-index: 2;
+}
+
+/*
+ * `annotate`'s marks. The outline is still the canvas's own accent — it is the *box* being dragged, not the mark — while
+ * the swatch inside it is the colour the annotation will actually be drawn in (`shapes/annotations-adapter.tsx`).
+ */
+.placement-mark-highlight,
+.placement-mark-underline,
+.placement-mark-strike {
+  background: transparent;
+}
+
+.placement-mark-note {
+  border-color: var(--warning, #b26a00);
+  background: transparent;
+}
+
+.placement-swatch {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+/* A line mark is a rule at one edge of its box, not a filled rectangle: that is what the reader draws. */
+.placement-mark-underline .placement-swatch {
+  inset: auto 0 0 0;
+  height: 2px;
+}
+
+.placement-mark-strike .placement-swatch {
+  inset: 50% 0 auto 0;
+  height: 2px;
+}
+
+/* A note is one icon box anchored at its lower-left; the glyph is decoration over the colour the reader will use. */
+.placement-note {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-size: 11px;
+  font-weight: 700;
+  color: #3a2f00;
+  pointer-events: none;
+}
+
+/*
+ * A text element's `x`/`y` is its **baseline** (`edit-pdf`'s `textPlacement`), so the preview draws the string on the
+ * mark's bottom edge: the span's own baseline sits a half-leading plus a descent above its content-box bottom with
+ * `line-height: 1.15`, and the span is pushed down by exactly that much so the two land together. Descenders then hang
+ * *below* the outline, which is where the engine puts them — the box is the baseline plus the ascent, not a picture frame.
+ *
+ * **That number is not in this rule**, and it used to be: `bottom: -0.17em` was written here by hand, and it is not the
+ * drop of any font the browsers actually substitute for Helvetica — theirs is nearer `0.23em`, so every preview sat a
+ * fifth of a line above the baseline the engine would use, and the correction was invisible because it looked like a
+ * deliberate offset. It is measured now (`textBaselineDropEm`, `features/placement/geometry.ts`) and set on the span by
+ * the shape that draws it, which is the same measurement the inline editor is positioned with.
+ */
+.placement-text {
+  position: absolute;
+  left: 0;
+  white-space: pre;
+  color: var(--text);
+  font-family: Helvetica, Arial, sans-serif;
+  line-height: 1.15;
+  pointer-events: none;
+}
+
+/*
+ * The inline text editor: a real `<input>` laid exactly over the words it replaces, so a caption is typed *on the page*
+ * rather than into a field beside it. Two details are why it is positioned in JavaScript rather than by a class:
+ *
+ * - its box is pushed down by the same measured baseline drop the preview uses, and its font size is the element's own
+ *   scaled by the canvas zoom — anything else types in the wrong size at the wrong height, which is a preview of a page
+ *   the user is not looking at;
+ * - `padding` and `border` are zero. Either one would put the glyphs a pixel or two inside the dashed outline while the
+ *   engine writes them on its edge; the frame is a `box-shadow`, which is drawn outside the box and moves nothing.
+ */
+.placement-text-editor {
+  position: absolute;
+  z-index: 3;
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 2px;
+  background: color-mix(in srgb, var(--surface) 86%, transparent);
+  box-shadow: 0 0 0 2px var(--accent-text);
+  outline: none;
+  caret-color: var(--accent-text);
+  user-select: text;
+}
+
+.placement-handle {
+  position: absolute;
+  right: -5px;
+  bottom: -5px;
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  background: var(--accent-text);
+  border: 1px solid var(--surface);
+  cursor: nwse-resize;
+}
+
+.placement-index {
+  position: absolute;
+  left: -1px;
+  top: -18px;
+  font-size: 10px;
+  color: var(--text-faint);
+  background: var(--surface);
+  padding: 0 3px;
+  border-radius: 3px;
+  pointer-events: none;
+}
+
+.placement-ghost {
+  position: absolute;
+  border: 1px dashed var(--accent-text);
+  background: rgba(26, 115, 232, 0.12);
+  pointer-events: none;
+}
+
+/*
+ * The zoom control: a `−`, a reading, a `+` and `Fit`, which is the shape every editor uses for the one control that is
+ * used while looking at something else. It replaced a dropdown of four magnifications, and the difference is not
+ * cosmetic: the reading is the *rendered* scale — the page's own pixels on this screen, which the column's width and the
+ * zoom factor together decide — so it is a number the user can trust rather than a label that has to be interpreted.
+ */
+.placement-zoom {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 2px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+}
+
+.placement-zoom-label {
+  min-width: 48px;
+  text-align: center;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-muted);
+}
+
+/*
+ * The full-screen stage (`.placement-fullscreen`, `features/placement/index.tsx`).
+ *
+ * The canvas's own root becomes the viewport, **under the shell's topbar** and over the page behind it — and the second
+ * half of that is what makes the mode worth having: the breadcrumb, the account and the drawer's handle stay where they
+ * are, so full screen is not a page the user has to find their way back from. (The navigation half of the same request is
+ * the shell's `data-focus` attribute, in `app/root-layout.tsx`.)
+ *
+ * `top` is the header's height and the z-index sits below the topbar's 20 and the drawer's 39, so both stay in front of
+ * the stage rather than under it. The wrap inside stops being a bounded viewport of its own and fills the column:
+ * `overflow: hidden` here and `flex: 1` there is what makes a page taller than the screen scroll *inside* the canvas
+ * instead of carrying the toolbar off the top of it.
+ */
+.placement-fullscreen {
+  position: fixed;
+  top: var(--header-height);
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 18;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px 16px 16px;
+  overflow: hidden;
+  background: var(--surface-2);
+}
+
+.placement-fullscreen .placement-wrap {
+  flex: 1 1 auto;
+  min-height: 0;
+  max-height: none;
+}
+
+/*
+ * ── The editing studio ───────────────────────────────────────────────────
+ *
+ * The screen a placement tool opens on once a page has been rendered (`features/placement/index.tsx`,
+ * `features/placement/toolbox.tsx`). One frame, three columns, and each column is one question:
+ *
+ *   rail      — *what* am I placing / selecting (icons, 38px, fixed width)
+ *   stage     — *where* on the page (the leftover width, `minmax(0, 1fr)`, and the only cell that grows)
+ *   inspector — *which one exactly*, and the tool's own settings for it (a fixed-ish 300–360px)
+ *
+ * `minmax(0, 1fr)` and not `1fr` for the stage: a zoomed page is wider than the column it is in, and `1fr` has an
+ * automatic minimum of its content's width, so the grid would grow past the card and push the inspector off the screen
+ * instead of letting the page scroll inside its viewport — the same defect the wrap's own `overflow: auto` fixes one
+ * level down.
+ *
+ * Under 1100px the three become one: the rail turns into a row above the page, and the inspector drops underneath it.
+ * The drawing keeps the full width at every size, which is the one column that cannot be traded away.
+ */
+.studio-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 20px;
+}
+
+/*
+ * The frame's own padding is the studio's, and the reason is the bar: it is a header that has to meet the card's edge,
+ * so the card carries no padding and **every region inside it brings its own** — inches (`padding: 14px 16px` on the head,
+ * the bar, the body and the foot) rather than one inset inherited from the outside, which is what the first version of
+ * this frame got wrong: with `padding: 0` here and an inset only on the bar and the body, the head, the field's own foot
+ * and the whole preparation panel sat flush against the border (measured on the served page: every one of them at the
+ * card's inner edge, x = 285 of a card starting at 284).
+ */
+.studio-card {
+  padding: 0;
+  overflow: hidden;
+}
+
+/* The frame the *page* draws around a framed field: no gap, because each region below carries its own inset and its own
+   hairline, end to end. */
+.placement-framed {
+  display: flex;
+  flex-direction: column;
+}
+
+/* The frame's header: the field's name, the state of the upload and the way to replace the file, inset and separated from
+   what it names by a hairline rather than by a gap. */
+.studio-head {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+/* The JSON editor, when the frame is the page's: it is a form, so it gets the frame's own inset. */
+.studio-json {
+  padding: 16px;
+}
+
+/*
+ * The field's own foot — how many marks there are and the way to JSON — in a frame the page drew.
+ *
+ * It is the last thing in every state, and that is deliberate: hide the toolbox and the list before the first render and
+ * a placement written as JSON is still one click away, so what the ordering hides is never a *value*.
+ */
+.placement-foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 13px 16px;
+  border-top: 1px solid var(--border);
+}
+
+.placement-studio {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+}
+
+/*
+ * The canvas in the JSON view: **mounted and hidden**, not unmounted.
+ *
+ * The field shows one frame at a time and both are mounted, because the canvas owns state that is not a view — the
+ * previews (each a job of its own) and the gesture history — and a peek at the JSON value must not spend a render per
+ * page to come back. The rule is needed because the class above carries a `display`, which wins over the `hidden`
+ * attribute's own `display: none` from the UA stylesheet; it is one line rather than a `style` prop so the hiding stays
+ * where every other display decision is.
+ */
+.placement-studio[hidden] {
+  display: none;
+}
+
+/* The bar: what is open, where in it, and how big. Truncated rather than wrapped, so the controls keep their place. */
+.studio-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface-2);
+}
+
+/* Where in the document the drawing is, as a chip: the one reading in the bar that is a *state* rather than a control. */
+.studio-page-chip {
+  flex: none;
+  padding: 3px 9px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--text-muted);
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+/* The run's facts, in the bar only in full screen (`features/placement/index.tsx`): a fixed 30 px control beside a chip
+   and a name that truncates, so it keeps its size while the actions take what is left of the row. */
+.studio-bar .infotip {
+  flex: none;
+}
+
+.studio-bar-doc {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+  max-width: 40%;
+  color: var(--text-muted);
+}
+
+.studio-bar-actions {
+  display: flex;
+  flex: 1 1 auto;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+  min-width: 0;
+}
+
+.studio-divider {
+  flex: none;
+  width: 1px;
+  height: 20px;
+  margin: 0 3px;
+  background: var(--border);
+}
+
+.studio-body {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) minmax(300px, 340px);
+  align-items: start;
+  gap: 14px;
+  padding: 14px 16px;
+}
+
+/*
+ * The toolbox. Vertical, so it costs the drawing a fixed strip rather than a row that wraps on a narrow window, and it
+ * is a `toolbar` role whose buttons are presses (`aria-pressed`) — a tool that is *on* is a state, not a label.
+ */
+.studio-rail {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 4px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface-2);
+}
+
+.studio-rail-btn {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 9px;
+  background: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.studio-rail-btn:hover:not(:disabled) {
+  background: var(--surface);
+  color: var(--text);
+}
+
+.studio-rail-btn[aria-pressed="true"] {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+.studio-rail-btn:focus-visible {
+  outline: 2px solid var(--accent-text);
+  outline-offset: 1px;
+}
+
+.studio-rail-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.studio-rail-foot {
+  margin-top: 4px;
+  padding-top: 4px;
+  border-top: 1px solid var(--border);
+}
+
+.studio-rail-done {
+  color: var(--accent-text);
+}
+
+/*
+ * The tooltip.
+ *
+ * Drawn, not `title`: the browser's own tooltip does not appear for a button that is *focused but not hovered*, which is
+ * the reader who needs it most — so the pair of selectors below is the point of the component, and `visibility` (rather
+ * than only opacity) is what takes it out of the tab order's rectangles and lets a screenshot see the button without it.
+ */
+.studio-tip {
+  position: absolute;
+  left: calc(100% + 10px);
+  top: 50%;
+  z-index: 30;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  width: max-content;
+  max-width: 240px;
+  padding: 8px 10px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  box-shadow: var(--shadow);
+  color: var(--text);
+  text-align: left;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform: translateY(-50%) translateX(-4px);
+  transition: opacity 0.12s ease, transform 0.12s ease;
+}
+
+.studio-rail-btn:hover .studio-tip,
+.studio-rail-btn:focus-visible .studio-tip {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(-50%) translateX(0);
+}
+
+.studio-tip-name {
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.studio-tip-hint {
+  font-size: 11px;
+  line-height: 1.45;
+  color: var(--text-muted);
+  white-space: normal;
+}
+
+/*
+ * The inspector: the numbers, the tool's settings and the hint in one column that does not move.
+ *
+ * Its own scroll, because the drawing beside it is bounded (`placement-wrap`'s viewport) and a column that grew taller
+ * than the page would take the Run button out of reach to say something the list already said.
+ */
+.studio-inspector {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+  max-height: min(72vh, 940px);
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.studio-inspector-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.studio-inspector-options {
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+}
+
+/*
+ * Before the first render: the file, the page, and the two ways to render it. No toolbox and no element list, because
+ * nothing on this screen has a coordinate system yet (`features/placement/index.tsx`).
+ */
+.studio-prepare {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 16px;
+}
+
+.studio-prepare-file {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface-2);
+}
+
+.studio-bulk {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* The studio's own copy of it, under the bar and inside the frame's padding, so it lines up with the columns below. */
+.studio-bulk-row {
+  padding: 0 14px;
+}
+
+.studio-bulk-track {
+  flex: 1 1 auto;
+  height: 4px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--border-strong) 60%, transparent);
+}
+
+.studio-bulk-fill {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--accent);
+  transition: width 0.2s ease;
+}
+
+@media (max-width: 1100px) {
+  .studio-body {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .studio-rail {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+
+  .studio-rail-foot {
+    margin: 0 0 0 4px;
+    padding: 0 0 0 4px;
+    border-top: none;
+    border-left: 1px solid var(--border);
+  }
+
+  /* A rail that is a row puts its tooltips below the buttons, centred, which is the only side with room. */
+  .studio-tip {
+    left: 50%;
+    top: calc(100% + 8px);
+    transform: translateX(-50%) translateY(-4px);
+  }
+
+  .studio-rail-btn:hover .studio-tip,
+  .studio-rail-btn:focus-visible .studio-tip {
+    transform: translateX(-50%) translateY(0);
+  }
+
+  .studio-inspector {
+    max-height: none;
+  }
+}
+
+/* The inspector is a panel of its own once there is room for three columns: a hairline marks where the drawing ends and
+   the numbers begin, which is the same division the two-column tools make with a card edge. */
+@media (min-width: 1100px) {
+  .studio-inspector {
+    padding-left: 14px;
+    border-left: 1px solid var(--border);
+  }
+}
+
+/*
+ * The inspector's foot: the run's own facts (`ⓘ`) beside the canvas's keyboard hint, in one row.
+ *
+ * The facts are first so the trigger sits at the column's left edge where the eye lands, and the paragraph takes the
+ * rest of the row and wraps inside it — a hint that set the row's width would push the `ⓘ` off the edge of the column.
+ * The pair is hidden together in full screen with the rest of the inspector (below).
+ */
+.placement-hint {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.placement-hint > p {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+/* The rows are the same value as the drawing, not the drawing: full screen is the page. Hidden rather than unmounted,
+   because they hold the fields — and their state — for the marks that are still on it. The toolbox stays: it is how a
+   mark gets made in the first place. */
+.placement-fullscreen .studio-inspector,
+.placement-fullscreen .placement-hint {
+  display: none;
+}
+
+/*
+ * …and there is deliberately **no** rule for the card here, which is worth writing down because this stylesheet used to
+ * carry one (`.placement-fullscreen .studio-card { overflow: visible }`) that could never match: the mode's class is on the
+ * stage, and the stage sits *inside* the card, so a descendant selector has nothing to select. Nor does anything need it:
+ * the stage is `position: fixed`, which is the browser's own rule that the boxes above such an element do not clip it.
+ *
+ * Measured in the mode with the bar's `ⓘ` panel open, at 1440 × 900 and at 390 × 844: the card is `30, 82 1380 × 134`
+ * (350 × 134 at 390) and `overflow: hidden`, the stage is the full window under the topbar, and the panel is at `342, 127`
+ * with an empty `style` attribute and all five hit tests inside it — every one of those readings identical when the card's
+ * `overflow` is set to `visible` by hand, because the clamp's walk stops at the fixed stage and never reaches the card. The
+ * card also has nothing left outside the stage to crop: the list of its painted descendants whose boxes leave its clip box,
+ * with the stage and everything inside it excluded, is **empty** in both states.
+ *
+ * A rule that cannot match and need not is worse than no rule: it reads as a fact about the layout and is not one. The
+ * claim that keeps this deletion honest is a browser reading — the card is still `overflow: hidden` while the mode is on —
+ * so a restructure that puts the card inside the stage turns it red, which is the moment this reasoning has to be taken
+ * again.
+ */
+
+.placement-fullscreen .studio-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  grid-template-columns: auto minmax(0, 1fr);
+  /* One row that fills the stage, so `height: 100%` on the wrap is a length rather than a guess. */
+  grid-template-rows: minmax(0, 1fr);
+}
+
+.placement-fullscreen .placement-wrap {
+  height: 100%;
+  max-height: none;
+}
+
+/*
+ * In full screen the bar stops being a row above the drawing and becomes **an overlay that gets out of the way**: it
+ * slides out of the top of the stage, and the space it was using goes to the canvas — measured, the wrap starts 73 px
+ * higher and is 73 px taller (the bar's 63 plus the column's 10 px gap). It comes back two ways: the pointer reaching the
+ * stage's top strip, which is what sets `placement-bar-revealed` (`features/placement/index.tsx`), and **`:focus-within`**,
+ * because a bar that hid itself while holding the keyboard would be a set of buttons a keyboard user could not see. The
+ * two are separate rules rather than one because the reasons are separate — a pointer asking for the bar is not the same
+ * fact as a caret being inside it.
+ *
+ * `translate` rather than `display: none`, and that is the whole trick: the bar keeps its height and its tab order, so a
+ * mark placed under it stays where the user put it and the reveal is one transform away rather than a re-render.
+ *
+ * **`z-index: 3`, one step above the marks' own lift (`2`, `.placement-mark.is-selected`), and it is a defect this was
+ * found by: at `2` the two tie, the tie goes to DOM order, and the drawing comes after the bar — so a *selected* mark
+ * near the panel was painted over it. Measured with a mark under the bar's `ⓘ` panel (defect 260): the point 94 % of the
+ * way down the panel hit `button.placement-mark.is-selected`, one of the five hit tests a claim makes. A lifted mark is
+ * lifted over its neighbours; the mode's own control surface is not a neighbour.
+ */
+.placement-fullscreen .studio-bar {
+  position: absolute;
+  top: 8px;
+  right: 16px;
+  left: 16px;
+  z-index: 3;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: var(--shadow);
+  transform: translateY(calc(-100% - 32px));
+  transition: transform 160ms ease;
+}
+
+.placement-fullscreen.placement-bar-revealed .studio-bar,
+.placement-fullscreen .studio-bar:focus-within {
+  transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .placement-fullscreen .studio-bar {
+    transition: none;
+  }
+}
+
+.placement-stroke {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.placement-row {
+  position: relative;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.placement-row.is-selected {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-weak);
+}
+
+/*
+ * The row head is a badge and a name, and the name is **the text the user typed** (`elementSummary`). A flex item's
+ * automatic minimum size is its content's, so as that sentence grew the head grew with it — and long before it ran out of
+ * column, the `Remove` button beside it ran out of room, wrapped to a second line, and pushed every field below the head
+ * down by a line's height. Measured on the served page while typing a 43-character caption into the `Text` field: the
+ * head went from 116px to 251px wide, wrapped, and the field the caret was in jumped 33px. Nothing was broken except the
+ * layout, which is exactly why it read as the editor losing the user's place.
+ *
+ * `min-width: 0` is the fix and it is the whole fix: it lets the flex item be narrower than its content, which is what
+ * makes the ellipsis on the name reachable at all.
+ */
+.placement-row-head {
+  display: flex;
+  flex: 1 1 auto;
+  align-items: center;
+  min-width: 0;
+  gap: 8px;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  text-align: left;
+  color: var(--text);
+}
+
+.placement-row-title {
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.placement-fields {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: flex-end;
+}
+
+.placement-field {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 68px;
+}
+
+.placement-field-wide {
+  min-width: 180px;
+  flex: 1;
+}
+
+.placement-field-toggle {
+  justify-content: flex-end;
+}
+
+/* A value the caller has one chance to keep: selectable in full, and impossible to mistake for ordinary text. */
+.secret-value {
+  display: block;
+  padding: 8px 10px;
+  border: 1px solid var(--border-strong);
+  border-radius: 8px;
+  background: var(--surface-2);
+  letter-spacing: 0.04em;
+  overflow-wrap: anywhere;
+  user-select: all;
+}
+
+/*
+ * ── The application shell ────────────────────────────────────────────────
+ *
+ * Sidebar + topbar, laid out the way Auth Platform and Procurement lay theirs out: a fixed 264px column that owns
+ * the brand, the navigation and the account block, a 64px bar across the rest that owns the breadcrumb and the
+ * session, and one scrolling content area underneath. The numbers are theirs on purpose (64px, 264px, 10px radius,
+ * `--sidebar-*` tokens), because a person who uses the two platforms should not have to learn a second chrome.
+ */
+
+.shell {
+  display: flex;
+  min-height: 100vh;
+}
+
+.shell-side {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 40;
+  display: flex;
+  flex-direction: column;
+  width: var(--sidebar-w);
+  background: var(--sidebar-bg);
+  border-right: 1px solid var(--sidebar-border);
+}
+
+.shell-main {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-width: 0;
+  margin-left: var(--sidebar-w);
+}
+
+.shell-topbar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  height: var(--header-height);
+  padding: 0 24px;
+  border-bottom: 1px solid var(--border);
+  background: color-mix(in srgb, var(--surface) 88%, transparent);
+  backdrop-filter: blur(10px);
+}
+
+.shell-content {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+/*
+ * The band every route renders into. Vertical only: the horizontal gutter belongs to `Container`, which every page
+ * already renders, and padding both here and there would leave a 44px margin nobody chose.
+ */
+.shell-inner {
+  width: 100%;
+  padding: 24px 0 64px;
+}
+
+/*
+ * The click-away behind the drawer, and it is a real `<button>` rather than a div: it is a click target whose whole
+ * job is to be pressed, and a div would be a target only a mouse can reach. It is removed outright unless the shell says
+ * its sidebar is a drawer (`data-drawer`) — there is no drawer to close, so leaving it mounted would put a full-viewport
+ * button in the tab order.
+ */
+.shell-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 39;
+  padding: 0;
+  border: 0;
+  background: rgba(15, 17, 23, 0.42);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.18s ease;
+  display: none;
+}
+
+.shell[data-drawer="true"] .shell-overlay {
+  display: block;
+}
+
+.shell-overlay[data-open="true"] {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/*
+ * ── The drawer, keyed on the shell's own attribute ───────────────────────
+ *
+ * Two states need the sidebar to be off-canvas — a window narrower than 1024px, where it does not fit beside the content,
+ * and **full-screen editing**, where the canvas has asked for the room — and the shell writes one attribute for both
+ * (`app/root-layout.tsx`). The alternative was this block written twice, once inside `@media (max-width: 1023px)` and
+ * once for the mode, which is two places for one behaviour to drift apart: a full-screen mode whose drawers and
+ * paddings were subtly not the narrow layout's, with nothing in either file saying so.
+ *
+ * `visibility` is doing real work here, not decoration: an off-screen drawer whose links are still focusable is a
+ * navigation a keyboard user can tab into and not see. Hiding it immediately on open and only after the slide
+ * finishes on close (`transition` delay) keeps the animation and takes the whole subtree out of the tab order and
+ * the accessibility tree while it is shut.
+ */
+.shell[data-drawer="true"] .shell-side {
+  visibility: hidden;
+  transform: translateX(-100%);
+  transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), visibility 0s linear 0.22s;
+  box-shadow: var(--shadow-lg);
+}
+
+.shell[data-drawer="true"] .shell-side[data-open="true"] {
+  visibility: visible;
+  transform: none;
+  transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), visibility 0s linear 0s;
+}
+
+.shell[data-drawer="true"] .shell-main {
+  margin-left: 0;
+}
+
+.shell[data-drawer="true"] .shell-topbar {
+  padding: 0 16px;
+}
+
+.shell[data-drawer="true"] .shell-inner {
+  padding: 16px 0 56px;
+}
+
+/*
+ * Full-screen editing's own rules. The navigation is already gone (the drawer above); what is left is the band: a footer
+ * is a set of links out of a page the user is working **in**, and the band's own padding comes back to the scale of the
+ * toolbar it now holds.
+ */
+.shell[data-focus="true"] .shell-foot {
+  display: none;
+}
+
+.shell[data-focus="true"] .shell-inner {
+  padding: 14px 0 18px;
+}
+
+/* ── Sidebar ────────────────────────────────────────────────────────────── */
+
+.side-brand {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 10px;
+  height: var(--header-height);
+  padding: 0 18px;
+  color: var(--sidebar-fg);
+  text-decoration: none;
+}
+
+.side-brand:hover {
+  text-decoration: none;
+}
+
+.side-brand-badge {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  color: #fff;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  box-shadow: 0 8px 16px -8px rgba(99, 102, 241, 0.75);
+}
+
+.side-brand-name {
+  display: block;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  line-height: 1.1;
+}
+
+.side-brand-sub {
+  display: block;
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--sidebar-fg-faint);
+}
+
+.side-hair {
+  flex: 0 0 auto;
+  height: 1px;
+  background: var(--sidebar-border);
+}
+
+/* The account block, above the navigation — the platform puts the tenant switcher here for the same reason: who you
+   are and where you are is context for everything below it, not something to scroll to the bottom to check. */
+.side-account {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 10px;
+  margin: 12px 12px 10px;
+  padding: 9px 10px;
+  border-radius: 12px;
+  background: var(--sidebar-hover);
+}
+
+.side-avatar {
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  width: 32px;
+  height: 32px;
+  overflow: hidden;
+  border-radius: 9px;
+  background: var(--sidebar-active);
+  color: var(--sidebar-fg);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.side-scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 4px 12px 16px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--sidebar-border) transparent;
+}
+
+.side-label {
+  display: block;
+  padding: 14px 10px 6px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--sidebar-fg-faint);
+}
+
+/*
+ * A category heading, and it is the same label as "Workspace" and "Account" — which is the whole point.
+ *
+ * It carries no badge, no caret and no hover *background*: a section heading is read, not operated, and the tools it
+ * names are listed directly under it. What it does keep is the two things a heading can honestly do here — it is a
+ * link to that category's filtered catalog, and it brightens when the current page is one of its own tools, so the
+ * heading over the selected row is never grey while its child is selected.
+ */
+.side-label-link {
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+
+.side-label-link:hover,
+.side-label-link[data-active="true"] {
+  color: var(--sidebar-fg);
+  text-decoration: none;
+}
+
+.side-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  margin-bottom: 2px;
+  padding: 8px 10px;
+  border: 0;
+  border-radius: 10px;
+  background: none;
+  color: var(--sidebar-fg-muted);
+  font: inherit;
+  font-size: 13px;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.side-item:hover {
+  background: var(--sidebar-hover);
+  color: var(--sidebar-fg);
+  text-decoration: none;
+}
+
+.side-item[data-active="true"] {
+  background: var(--sidebar-active);
+  color: var(--sidebar-fg);
+  font-weight: 600;
+}
+
+.side-item-icon {
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+}
+
+.side-item-label {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.side-item-count {
+  font-size: 11px;
+  color: var(--sidebar-fg-faint);
+}
+
+/*
+ * The tools inside a category — always on screen, because the category name above them is a section heading and a
+ * heading whose contents appear only after it is clicked is a heading that has to be discovered. The hairline on the
+ * left is what makes the indent read as *inside that heading* rather than as another row of the same list.
+ */
+.side-sub {
+  display: flex;
+  flex-direction: column;
+  margin: 2px 0 8px 21px;
+  padding-left: 8px;
+  border-left: 1px solid var(--sidebar-border);
+}
+
+/*
+ * One tool. It carries its own glyph rather than a bullet: a list of thirty-three where every row is a dot is a
+ * list you have to read; an icon is the half-second version of the same answer, and it is why the row's colour is
+ * the icon's colour too — `currentColor`, so both brighten together on hover and on the active row.
+ */
+.side-subitem {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 6px 8px;
+  border-radius: 8px;
+  color: var(--sidebar-fg-faint);
+  font-size: 12.5px;
+  text-decoration: none;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.side-subitem:hover {
+  background: var(--sidebar-hover);
+  color: var(--sidebar-fg);
+  text-decoration: none;
+}
+
+.side-subitem[data-active="true"] {
+  background: var(--sidebar-active);
+  color: var(--sidebar-fg);
+  font-weight: 600;
+}
+
+.side-foot {
+  flex: 0 0 auto;
+  padding: 12px 18px 14px;
+  border-top: 1px solid var(--sidebar-border);
+  color: var(--sidebar-fg-faint);
+  font-size: 10px;
+}
+
+/* ── Topbar ─────────────────────────────────────────────────────────────── */
+
+.crumbs {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+  font-size: 13px;
+}
+
+.crumbs a {
+  color: var(--text-muted);
+  text-decoration: none;
+}
+
+.crumbs a:hover {
+  color: var(--text);
+  text-decoration: none;
+}
+
+.crumb-sep {
+  color: var(--text-faint);
+}
+
+.crumb-now {
+  overflow: hidden;
+  color: var(--text);
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.topbar-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  border-radius: 9px;
+  background: var(--surface-2);
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+.icon-btn {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  background: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.icon-btn:hover {
+  background: var(--surface-2);
+  color: var(--text);
+}
+
+/* The drawer's handle: it exists only where the sidebar is a drawer — a narrow window, or full-screen editing at any
+   width. It is `grid` rather than `initial` because it is an `.icon-btn` — an icon whose box has to stay square
+   regardless of the glyph. */
+.nav-toggle {
+  display: none;
+}
+
+.shell[data-drawer="true"] .nav-toggle {
+  display: grid;
+}
+
+/* The one rule that is still about the *window* rather than about the drawer: a 64px bar carrying a breadcrumb, a quota
+   chip and an account menu has no room for the chip on a phone, whichever mode the shell is in. */
+@media (max-width: 1023px) {
+  .hide-below-lg {
+    display: none;
+  }
+}
+
+/*
+ * ── Landing ──────────────────────────────────────────────────────────────
+ *
+ * The marketing surface, and it is allowed to be one: a person who lands here has no file yet, so the page's job is
+ * to say what this is and hand them a way in. Everything is CSS — no images to ship, no library to load — which is
+ * also why the animated parts are transforms and opacity only: those are the two properties a browser can animate
+ * without re-laying out the page, and a drifting hero that stuttered would be worse than a still one.
+ */
+
+.landing {
+  display: flex;
+  flex-direction: column;
+  gap: 54px;
+}
+
+.hero {
+  position: relative;
+  overflow: hidden;
+  padding: 46px 40px 42px;
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--accent-weak) 62%, var(--surface)) 0%, var(--surface) 58%);
+  box-shadow: var(--shadow-sm);
+}
+
+/*
+ * The glow behind a hero's corners, in a box of its own so that the hero does not have to clip: a hero is a container
+ * for a page's contents, and `overflow: hidden` on it crops whatever is drawn outside it — which, for the tool banner,
+ * included the `ⓘ` panel hanging below its own trigger (defect 259). Same inset, same corner and same clip as the
+ * banner's own box, and `pointer-events: none` because this box covers all of it.
+ */
+.hero-glow {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+.hero-blob {
+  position: absolute;
+  filter: blur(46px);
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.hero-blob-a {
+  top: -80px;
+  left: -60px;
+  width: 320px;
+  height: 320px;
+  border-radius: 999px;
+  background: color-mix(in srgb, #6366f1 55%, transparent);
+}
+
+.hero-blob-b {
+  right: -70px;
+  bottom: -110px;
+  width: 300px;
+  height: 300px;
+  border-radius: 999px;
+  background: color-mix(in srgb, #06b6d4 42%, transparent);
+}
+
+/*
+ * The plan's file ceiling, pinned into the banner's top-right corner like a ribbon tag.
+ *
+ * The left edge is cut on a slant (`clip-path`) rather than rounded, which is what makes it read as a tag laid over
+ * the corner instead of a box that happens to sit there; the two outer corners are rounded by the hero's own radius
+ * and `overflow: hidden`, so the tag follows the banner's shape exactly. It is *this* caller's plan value, which is
+ * why it is worth the corner: it is the one number that decides whether a file can be used at all, and finding it
+ * out after the upload fails is being told too late.
+ *
+ * It is 34px tall and the hero's top padding is 46px, so it never touches the artwork below it. Below 640px the
+ * corner is not free — the pill would run underneath it — so the tag leaves the corner and becomes an ordinary chip
+ * above the headline, in the flow where nothing can collide with it.
+ */
+.hero-tag {
+  position: absolute;
+  top: 0;
+  right: 0;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  padding: 9px 18px 10px 26px;
+  background: linear-gradient(100deg, #6366f1, #8b5cf6 52%, #06b6d4);
+  clip-path: polygon(16px 0, 100% 0, 100% 100%, 0 100%);
+  color: #fff;
+  pointer-events: none;
+}
+
+.hero-tag-value {
+  font-size: 12.5px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+}
+
+.hero-tag-unit {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  opacity: 0.85;
+}
+
+@media (max-width: 640px) {
+  .hero-tag {
+    position: static;
+    display: inline-flex;
+    margin: 0 0 14px;
+    padding: 6px 13px;
+    border-radius: 999px;
+    clip-path: none;
+  }
+}
+
+.hero-inner {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+  gap: 34px;
+  align-items: center;
+}
+
+@media (max-width: 980px) {
+  .hero {
+    padding: 34px 22px 30px;
+  }
+
+  .hero-inner {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.hero-title {
+  font-size: clamp(30px, 4.2vw, 46px);
+  line-height: 1.06;
+  letter-spacing: -0.025em;
+}
+
+.grad-text {
+  background: linear-gradient(100deg, #6366f1, #8b5cf6 46%, #06b6d4);
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+}
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--surface) 82%, var(--accent-weak));
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+/* A pill carrying a single number — a category's tool count, where a full-size chip would outweigh its own label. */
+.pill-xs {
+  padding: 1px 8px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+/*
+ * The hero's three promises, as a checklist rather than a statistic row.
+ *
+ * This replaced a row of big numbers (how many tools, how many categories) because numbers that count what a person
+ * can already see add nothing, while the three things they *cannot* see — that the upload is deleted, that no library
+ * accumulates, that jobs do not share a process — are the ones that decide whether they use the app at all.
+ */
+.hero-facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px 20px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  color: var(--text-muted);
+  font-size: 12.5px;
+}
+
+.hero-facts li {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.hero-facts svg {
+  flex: 0 0 auto;
+  color: var(--accent-text);
+}
+
+.preview-card {
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  background: var(--surface);
+  box-shadow: var(--shadow-lg);
+}
+
+.preview-line {
+  height: 8px;
+  border-radius: 999px;
+  background: var(--surface-2);
+}
+
+.app-card {
+  display: flex;
+  /* `1 1 auto` so a card fills the grid row it sits in: the six top picks have summaries of different lengths, and
+     without this their Explore buttons sit at five different heights. */
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+  padding: 18px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.22s ease, border-color 0.22s ease;
+}
+
+.app-card:hover {
+  transform: translateY(-4px);
+  border-color: color-mix(in srgb, var(--accent) 32%, var(--border));
+  box-shadow: var(--shadow-lg);
+}
+
+.app-icon {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  color: #fff;
+  box-shadow: 0 10px 20px -12px rgba(26, 29, 46, 0.7);
+}
+
+/*
+ * The category cards.
+ *
+ * `auto-fill` here, unlike `.grid-picks`: seven groups at a wide window is three rows of three and one of one, which
+ * is a set without a shape, so the grid should use whatever width the window has. The tile carries the category's own
+ * gradient — the same one the sidebar, the tool cards and the group header use — so "purple means Organize" is
+ * learned once and holds everywhere in the app.
+ */
+.cat-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(268px, 1fr));
+  gap: 14px;
+}
+
+.cat-card {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  min-width: 0;
+  padding: 15px 16px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: var(--surface);
+  color: inherit;
+  text-decoration: none;
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.cat-card:hover {
+  transform: translateY(-3px);
+  border-color: color-mix(in srgb, var(--accent) 30%, var(--border));
+  background: linear-gradient(120deg, color-mix(in srgb, var(--accent) 8%, var(--surface)), var(--surface) 58%);
+  box-shadow: var(--shadow-lg);
+  text-decoration: none;
+}
+
+.cat-card-tile {
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  width: 44px;
+  height: 44px;
+  border-radius: 13px;
+  color: #fff;
+  box-shadow: 0 10px 22px -14px rgba(26, 29, 46, 0.8);
+}
+
+/* The arrow is a reward for pointing at the card, so it arrives rather than sitting there on all seven. */
+.cat-card-go {
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  color: var(--text-faint);
+  opacity: 0;
+  transform: translateX(-4px);
+  transition: opacity 0.2s ease, transform 0.2s ease, color 0.2s ease;
+}
+
+.cat-card:hover .cat-card-go {
+  color: var(--accent-text);
+  opacity: 1;
+  transform: none;
+}
+
+/*
+ * The recent-jobs feed.
+ *
+ * One bordered container with hairline rows rather than a table or a card per job: these are five glances at what
+ * happened lately, and five separate cards would each demand their own shadow, radius and margin to say the same
+ * thing. Every row is one link, so the hover state covers the whole target instead of the tool name alone.
+ */
+.job-feed {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
+}
+
+.job-feed-row {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  padding: 12px 16px;
+  color: inherit;
+  text-decoration: none;
+  transition: background 0.15s ease;
+}
+
+.job-feed-row + .job-feed-row {
+  border-top: 1px solid var(--border);
+}
+
+.job-feed-row:hover {
+  background: var(--surface-2);
+  text-decoration: none;
+}
+
+.job-feed-tile {
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  width: 36px;
+  height: 36px;
+  border-radius: 11px;
+  color: #fff;
+  box-shadow: 0 8px 18px -12px rgba(26, 29, 46, 0.8);
+}
+
+.job-feed-time {
+  flex: 0 0 auto;
+  min-width: 78px;
+  text-align: right;
+}
+
+.job-feed-go {
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  color: var(--text-faint);
+  transition: transform 0.18s ease, color 0.18s ease;
+}
+
+.job-feed-row:hover .job-feed-go {
+  transform: translateX(2px);
+  color: var(--accent-text);
+}
+
+.cta-band {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 28px;
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  background: linear-gradient(
+    120deg,
+    color-mix(in srgb, #6366f1 12%, var(--surface)),
+    color-mix(in srgb, #06b6d4 10%, var(--surface))
+  );
+}
+
+/*
+ * Six cards, three columns — not `auto-fill`.
+ *
+ * The catalog wants auto-fill: thirty-three cards should use whatever width the window has. A curated row does not,
+ * because `auto-fill` at a wide window makes it five columns and a single orphan, and "top picks" is a set of six by
+ * definition. Same for the three steps under it.
+ */
+.grid-picks {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+@media (max-width: 1100px) {
+  .grid-picks {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .grid-picks {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/*
+ * ── Motion ───────────────────────────────────────────────────────────────
+ *
+ * Four keyframes, all on `transform` and `opacity`, and one override for people who have asked their system not to
+ * animate things. `--d` is the stagger: an entrance that arrives all at once reads as a rendering glitch, while the
+ * same entrance spread over 200ms reads as intent.
+ */
+
+@keyframes pd-up {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes pd-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.965);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes pd-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+@keyframes pd-drift {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+  50% {
+    transform: translate3d(14px, -12px, 0);
+  }
+}
+
+.anim-up {
+  animation: pd-up 0.55s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: var(--d, 0ms);
+}
+
+.anim-pop {
+  animation: pd-pop 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: var(--d, 0ms);
+}
+
+.float {
+  animation: pd-float 6.5s ease-in-out infinite;
+  animation-delay: var(--d, 0ms);
+}
+
+.drift {
+  animation: pd-drift 15s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .anim-up,
+  .anim-pop,
+  .float,
+  .drift {
+    animation: none;
+  }
+
+  .app-card:hover,
+  .cat-card:hover,
+  .job-feed-row:hover .job-feed-go {
+    transform: none;
+  }
+}
+
+/* ── The tool page: the file board, its composition strip, and the drops ───
+ *
+ * The board replaced two lists with one, so most of what is here is the row: a file at a position, which is also
+ * the thing you drag. Everything stays inside the token palette except the strip's segment colours, and there the
+ * hue is information rather than decoration — five adjacent slices of the same indigo are one slice as far as the
+ * eye is concerned, and a colour is what says "these pages belong to that file" at a glance.
+ */
+
+.dropzone[data-compact="true"] {
+  padding: 16px 20px;
+}
+
+/*
+ * The board is a grid of **pages**, not a list of names. A tile is the document's own first page with its place in the
+ * order on top of it, because "is this the right file, the right way up" is the question the file list could not
+ * answer (`features/preview/`).
+ *
+ * The chrome over the page is the one thing that must never be unreadable, so each badge sits on its own translucent
+ * plate rather than directly on whatever the document happens to print there.
+ */
+.board-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(166px, 1fr));
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.board-tile {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  overflow: hidden;
+  transition: border-color 0.14s ease, background 0.14s ease, box-shadow 0.14s ease, opacity 0.14s ease;
+}
+
+.board-tile:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.board-tile[data-highlight="true"] {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-weak);
+}
+
+/* A tile that is still uploading has no place in the merge yet, and the dashed edge is what says so without a word. */
+.board-tile[data-unplaced="true"] {
+  border-style: dashed;
+  background: var(--surface-2);
+}
+
+.board-tile[data-dragging="true"] {
+  opacity: 0.45;
+}
+
+/* Where a dragged tile will land, stated on the tile it will land before. */
+.board-tile[data-over="true"] {
+  border-color: var(--accent);
+  box-shadow: inset 0 3px 0 0 var(--accent);
+}
+
+.board-shot {
+  position: relative;
+  display: block;
+  width: 100%;
+  /* A4's own ratio, so a portrait page fills the tile and a landscape one is letterboxed rather than cropped. */
+  aspect-ratio: 3 / 4;
+  padding: 0;
+  border: 0;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface-2);
+  cursor: zoom-in;
+}
+
+span.board-shot {
+  cursor: default;
+}
+
+.board-shot:hover .page-shot img {
+  transform: scale(1.015);
+}
+
+.board-tile-pos,
+.board-tile-grip,
+.board-tile-lock,
+.board-tile-state {
+  position: absolute;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  border-radius: 999px;
+  font-size: 11.5px;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+  backdrop-filter: blur(3px);
+}
+
+.board-tile-pos {
+  top: 7px;
+  left: 7px;
+  min-width: 24px;
+  height: 24px;
+  justify-content: center;
+  padding: 0 7px;
+  background: rgba(99, 102, 241, 0.94);
+  color: #fff;
+  box-shadow: var(--shadow-sm);
+}
+
+.board-tile-pos[data-unplaced="true"] {
+  background: rgba(107, 114, 128, 0.9);
+}
+
+.board-tile-grip {
+  top: 7px;
+  right: 7px;
+  width: 24px;
+  height: 24px;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.86);
+  color: #374151;
+  cursor: grab;
+  opacity: 0;
+  transition: opacity 0.14s ease;
+}
+
+.board-tile:hover .board-tile-grip,
+.board-tile:focus-visible .board-tile-grip {
+  opacity: 1;
+}
+
+.board-tile-grip:active {
+  cursor: grabbing;
+}
+
+.board-tile-lock {
+  bottom: 7px;
+  left: 7px;
+  padding: 2px 7px;
+  background: rgba(180, 83, 9, 0.92);
+  color: #fff;
+}
+
+.board-tile-state {
+  right: 7px;
+  bottom: 7px;
+  padding: 2px 8px;
+  background: rgba(26, 29, 46, 0.82);
+  color: #fff;
+}
+
+.board-tile-state[data-state="error"] {
+  background: rgba(239, 68, 68, 0.92);
+}
+
+.board-tile-body {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 9px 10px 8px;
+}
+
+/* ── The plan: one document, and which of its pages go where ─────────────
+ *
+ * The tools that take one document and choose pages from it (`features/page-plan/`) draw the *outputs* rather than the
+ * input, and they get two columns: the plan on the left, the options that decide it on the right. That is not a
+ * decoration — the preview redraws with every keystroke in the other column, so the two have to be visible at once or
+ * neither of them is doing anything.
+ *
+ * The columns are `1.4fr / 1fr` rather than even: the plan is pages, and pages want width. Under 900px they stack with
+ * the plan first, which keeps the reading order "what will be made" before "what it will be made from".
+ */
+.tool-split {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+  align-items: start;
+  gap: 20px;
+}
+
+/*
+ * Before a document is in, there is one column: the drop target, full width. The options that decide which pages are in
+ * which file are a question about a document that does not exist yet, so they arrive with it — and the page opens on the
+ * one action that has no alternative.
+ */
+.tool-single {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 20px;
+}
+
+@media (max-width: 900px) {
+  .tool-split {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/*
+ * A card's heading, with the glyph that says which of the two halves of the page it is: the document, or what the tool
+ * will do to it. The icon sits in a tinted tile so the heading reads as chrome rather than as the first line of content,
+ * and the trailing text is the same facts the old `row-between` heading carried.
+ */
+.card-head {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-width: 0;
+}
+
+.card-head .label,
+.card-head .tiny {
+  flex: 1 1 auto;
+}
+
+.card-head .tiny {
+  text-align: right;
+}
+
+.card-head-icon {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 26px;
+  height: 26px;
+  border-radius: var(--radius-sm);
+  background: var(--accent-weak);
+  color: var(--accent-text);
+}
+
+/*
+ * The document card, and the empty state that is the whole page until there is a document.
+ *
+ * Empty, the drop target is not a corner of a form — it is the page's one instruction, so it gets the accent edge, a
+ * tinted wash, and a slow pulse on the icon that stops (below) for a reader who asked for no motion. Filled, the tint
+ * drops to a hairline: the plan underneath is the subject by then.
+ */
+.upload-card {
+  border-color: color-mix(in srgb, var(--accent) 22%, var(--border));
+  box-shadow: var(--shadow-sm);
+}
+
+.upload-card .card-head-icon {
+  background: color-mix(in srgb, var(--accent) 16%, var(--surface));
+}
+
+.upload-card[data-empty="true"] {
+  border-color: color-mix(in srgb, var(--accent) 42%, var(--border));
+  background: linear-gradient(180deg, color-mix(in srgb, var(--accent-weak) 55%, var(--surface)), var(--surface) 62%);
+  box-shadow: var(--shadow);
+}
+
+.upload-card[data-empty="true"] .dropzone {
+  border-color: color-mix(in srgb, var(--accent) 46%, var(--border));
+  background: color-mix(in srgb, var(--surface) 76%, transparent);
+}
+
+.upload-card[data-empty="true"] .dropzone:hover {
+  border-color: var(--accent);
+}
+
+.upload-card[data-empty="true"] .dropzone-icon {
+  animation: pd-pulse 2.6s ease-in-out infinite;
+}
+
+/* The options card: a hairline of the same accent, so the two columns read as one screen with two halves. */
+.options-card {
+  border-color: color-mix(in srgb, var(--accent) 20%, var(--border));
+}
+
+/*
+ * The document this plan is about: one row, because there is one file. Its first page is drawn at the left, so the
+ * answer to "is this the right document" is a glance rather than a job.
+ */
+.plan-file {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface-2);
+}
+
+.plan-file-thumb {
+  position: relative;
+  flex: none;
+  width: 56px;
+  aspect-ratio: 3 / 4;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: #fff;
+}
+
+/*
+ * One output file. Every group is the same shape, so two rows of the form read as two sections of the same page rather
+ * than as a list that grew — which is what a preview of *files* has to look like when the options are typed as ranges.
+ */
+.plan-group {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.plan-group-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+/* The file number is chrome, not data — a tinted pill, sized to the page numbers it sits beside. */
+.plan-group-badge {
+  flex: none;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--accent-weak);
+  color: var(--accent-text);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.plan-pages {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(104px, 1fr));
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/*
+ * A page of an output. A4's own ratio again, and the number sits on its own plate because a page is mostly white and a
+ * bare number on it is unreadable exactly when the document prints something dark in that corner.
+ */
+.plan-page {
+  position: relative;
+  display: block;
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+  overflow: hidden;
+  cursor: zoom-in;
+  transition: border-color 0.14s ease, box-shadow 0.14s ease, opacity 0.14s ease;
+}
+
+.plan-page:hover {
+  border-color: var(--accent);
+  box-shadow: var(--shadow-sm);
+}
+
+.plan-page:hover .page-shot img {
+  transform: scale(1.02);
+}
+
+.plan-page:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* A page the options do not act on: still drawn, because it is still in the document, but plainly not the subject. */
+.plan-page[data-muted="true"] {
+  opacity: 0.42;
+}
+
+.plan-page-no {
+  position: absolute;
+  z-index: 2;
+  bottom: 6px;
+  right: 6px;
+  min-width: 22px;
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: rgba(26, 29, 46, 0.82);
+  color: #fff;
+  font-size: 11.5px;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+  backdrop-filter: blur(3px);
+}
+
+/*
+ * The two sides of a document that is being parted in two: what the output keeps, what it drops.
+ *
+ * **Bands, one above the other, each the full width of the card** — and that is a measurement rather than a taste: this
+ * preview lives inside the upload card of `tool-split` (651 px, a third of it padding), so two columns were 300 px each,
+ * which fits two page tiles per row and turns a twelve-page document into a 1 400 px column of pictures with the other
+ * half standing empty beside it. Full width, the same document is two rows of tiles, and the two sides stay two
+ * sections that are read in order rather than a comparison squeezed into a column. The kept side is tinted with the
+ * accent ("this is the result"), the removed side is plain and slightly receded ("this is what you are giving up"), and
+ * neither is greyed to the point of unreadability: the removed pages are still pages, and a person deciding what to cut
+ * needs to see them.
+ */
+.plan-halves {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* A half's own grid is denser than an output's: the point of these tiles is to scan a page list, not to inspect one. */
+.plan-half .plan-pages {
+  grid-template-columns: repeat(auto-fill, minmax(92px, 1fr));
+  gap: 8px;
+}
+
+.plan-half {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.plan-half[data-side="kept"] {
+  border-color: color-mix(in srgb, var(--accent) 26%, var(--border));
+  background: color-mix(in srgb, var(--accent) 4%, var(--surface));
+}
+
+.plan-half-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.plan-half-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  flex: none;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.plan-half[data-side="kept"] .plan-half-badge {
+  background: var(--accent-weak);
+  color: var(--accent-text);
+}
+
+.plan-half[data-side="removed"] .plan-half-badge {
+  background: var(--surface-3, var(--surface-2));
+  color: var(--text-muted);
+}
+
+/*
+ * A tile in a two-sided plan **does something**, so it stops being a magnifier: the cursor says "this moves", the plate
+ * in the corner says which way, and the magnifier moves to its own labelled button (`plan-zoom`).
+ */
+.plan-cell {
+  position: relative;
+  min-width: 0;
+}
+
+.plan-page[data-move] {
+  cursor: pointer;
+}
+
+.plan-page-action {
+  position: absolute;
+  z-index: 3;
+  top: 6px;
+  left: 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  background: rgba(26, 29, 46, 0.82);
+  color: #fff;
+  opacity: 0;
+  transform: scale(0.86);
+  transition: opacity 0.14s ease, transform 0.14s ease;
+}
+
+.plan-page[data-move]:hover .plan-page-action,
+.plan-page[data-move]:focus-visible .plan-page-action {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.plan-half[data-side="kept"] .plan-page[data-move]:hover .plan-page-action {
+  background: var(--danger);
+}
+
+/* The second action, always labelled and never the one a click already does. */
+.plan-zoom {
+  position: absolute;
+  z-index: 3;
+  top: 6px;
+  right: 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--surface) 88%, transparent);
+  color: var(--text-muted);
+  cursor: zoom-in;
+  opacity: 0;
+  transition: opacity 0.14s ease, color 0.14s ease, border-color 0.14s ease;
+}
+
+.plan-cell:hover .plan-zoom,
+.plan-zoom:focus-visible {
+  opacity: 1;
+}
+
+.plan-zoom:hover {
+  border-color: var(--accent);
+  color: var(--accent-text);
+}
+
+/* Touch, and anything without hover: both actions stay visible rather than being unreachable. */
+@media (hover: none) {
+  .plan-page-action,
+  .plan-zoom {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .plan-page-action {
+    transition: none;
+    transform: none;
+  }
+}
+
+/* "and N more" is a button in the same grid, so the row keeps its rhythm instead of ending in a dangling count. */
+.plan-page-more {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  border-style: dashed;
+  background: var(--surface);
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .plan-page:hover .page-shot img {
+    transform: none;
+  }
+}
+
+/* ── The order board: one document, and the arrangement of its pages ─────
+ *
+ * `reorder-pages` draws its own pages in output order and lets them be dragged (`features/page-order/`). The split is
+ * the plan preview's, flipped: the document is the narrow column here and the arrangement is the wide one, because the
+ * board is the thing being worked on — twelve tiles at 1fr of 651 px would be two per row, and a board whose pages go
+ * off the bottom of the screen cannot be rearranged by dragging. Under 900px they stack with the document first, the
+ * same reading order as every other single-document tool.
+ */
+.tool-split-board {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.7fr);
+}
+
+/*
+ * The **stacked** boards — `reorder-pages`, `crop` and `rotate` — where the document is one full-width band and the
+ * tool's own surface gets the whole width under it.
+ *
+ * Each of the three for the same reason, one at a time and in the same direction. The board whose product *is* a row of
+ * tiles cannot be measured against a column: at 1.7 of 2.7 of the page the tiles wrap into two or three rows of four,
+ * and the question `reorder-pages` exists to answer — what comes after what — is answered by seeing the row. A crop box
+ * is dragged, and a box being dragged cannot be the smaller half of the screen. And `rotate` was the last one holding
+ * out on the argument that "its tiles are square and its options are a column, so the second column is where its
+ * controls belong" — which describes the *options* and forgets the tiles: the options are rows of boxes and three
+ * buttons, and the tiles are the thing being read, six of them to a row on a full-width band where a column fits two.
+ */
+.tool-split-board.tool-stacked,
+.tool-split-crop.tool-stacked {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+/*
+ * Full width means a bigger page, and the ceiling is why it was a ceiling: 620 px was chosen when the drawing shared the
+ * row with a 1.7 fr options column. On a band of its own, a portrait A4 can be 880 px wide and still be shorter than the
+ * viewport — and the two limits stay expressed as one width, so the shape stays the document's (see `.crop-page`).
+ */
+.tool-split-crop.tool-stacked .crop-page {
+  width: min(100%, 880px, calc(68vh * var(--crop-ratio)));
+}
+
+.order-card {
+  border-color: color-mix(in srgb, var(--accent) 20%, var(--border));
+}
+
+/*
+ * The three buttons that are not a tile. A band rather than a row of loose buttons so they read as one control surface
+ * — the arrangement's toolbar — instead of as three actions with different weights.
+ */
+.order-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface-2);
+}
+
+/*
+ * The pages, in output order. A grid rather than a single row: a twelve-page document is four rows of three at this
+ * width, which fits on one screen, and a horizontal filmstrip of the same twelve would need scrolling to see page 12 of
+ * 12 — the one page a person most often wants to move.
+ */
+.order-pages {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(132px, 1fr));
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.order-cell {
+  position: relative;
+  min-width: 0;
+}
+
+.order-tile {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  overflow: hidden;
+  cursor: grab;
+  transition: border-color 0.14s ease, box-shadow 0.14s ease, opacity 0.14s ease;
+}
+
+.order-tile:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.order-tile:active {
+  cursor: grabbing;
+}
+
+.order-tile[data-dragging="true"] {
+  opacity: 0.45;
+}
+
+/*
+ * Where a dragged tile will land, drawn on the tile it will land against: an accent edge on the half of the target the
+ * pointer is over. The edge is the whole point of the two-sided drop — releasing on the left half of page 5 and on its
+ * right half are different arrangements, and a highlight that could not tell them apart would leave the drop a guess.
+ */
+.order-tile[data-over="before"],
+.order-tile[data-over="after"] {
+  border-color: var(--accent);
+}
+
+.order-tile[data-over="before"] {
+  box-shadow: inset 3px 0 0 0 var(--accent);
+}
+
+.order-tile[data-over="after"] {
+  box-shadow: inset -3px 0 0 0 var(--accent);
+}
+
+.order-shot {
+  position: relative;
+  display: block;
+  width: 100%;
+  /* A4's own ratio, as on every page tile in this app, so a portrait page fills it and a landscape one is letterboxed. */
+  aspect-ratio: 3 / 4;
+  padding: 0;
+  border: 0;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface-2);
+  cursor: zoom-in;
+}
+
+.order-shot:hover .page-shot img {
+  transform: scale(1.02);
+}
+
+/* The output position — the number the arrangement is *about*. */
+.order-pos {
+  position: absolute;
+  z-index: 2;
+  top: 7px;
+  left: 7px;
+  min-width: 24px;
+  height: 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 7px;
+  border-radius: 999px;
+  background: rgba(99, 102, 241, 0.94);
+  color: #fff;
+  font-size: 11.5px;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+  box-shadow: var(--shadow-sm);
+  backdrop-filter: blur(3px);
+}
+
+/* How many times the page appears, on the picture it appears on — `×3` is readable at a glance; `2 copies` is not. */
+.order-copies {
+  position: absolute;
+  z-index: 2;
+  bottom: 7px;
+  right: 7px;
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: rgba(26, 29, 46, 0.86);
+  color: #fff;
+  font-size: 11.5px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  backdrop-filter: blur(3px);
+}
+
+/* The grip says the tile is draggable; it fades in, because on a board of twelve it would otherwise be twelve dots. */
+.order-grip {
+  position: absolute;
+  z-index: 2;
+  top: 7px;
+  right: 7px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.86);
+  color: #374151;
+  opacity: 0;
+  transition: opacity 0.14s ease;
+}
+
+.order-tile:hover .order-grip,
+.order-tile:focus-visible .order-grip {
+  opacity: 1;
+}
+
+.order-tile-body {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 7px 8px 8px;
+}
+
+/*
+ * The label and the copy stepper share this row when the tile is wide enough for both, and **wrap when it is not**.
+ *
+ * At six pages in one row a stacked board leaves each tile 144 px, so the row has 126 px for a `page 1` label (37 px)
+ * and a 95 px stepper: the label was the flex item that gave way, and with `nowrap` it did not shrink — its text simply
+ * ran past its own box and under the stepper, so the button covered the label it belongs to (defect 240). Wrapping is
+ * what lets the two survive a narrow tile: the stepper drops to its own line, right-aligned by the same `margin-left`,
+ * and the label is measured with nothing beside it to share the width with.
+ */
+.order-tile-top {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  row-gap: 4px;
+  min-width: 0;
+  flex-wrap: wrap;
+}
+
+.order-from {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 11.5px;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.order-from strong {
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+
+/* The arrows sit under the label and stay visible: a hover-only control is unreachable on touch, and this is the only
+ * way to move a page without a pointer drag. */
+.order-tile-actions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+/* A counted stepper rather than two loose buttons: the number between them is the page's total appearances, which is the
+ * answer to the question the ⊕ asks. */
+.order-copy-step {
+  display: inline-flex;
+  align-items: center;
+  gap: 1px;
+  margin-left: auto;
+  padding: 1px 3px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface-2);
+}
+
+/*
+ * The stepper's own buttons carry a tighter measure than `btn-sm`'s, and that is the other half of defect 240: `btn-sm`
+ * is sized for a word (`padding: 6px 10px`), and a glyph does not need it — two of those plus the count came to 95 px,
+ * which is what pushed the label out of its box on a 144 px tile. 4px/6px around a 13 px glyph is 71 px for the whole
+ * control, so the label and the stepper fit on one line at the widths this board actually produces, and the wrap above
+ * is the fallback for the ones narrower than that.
+ */
+.order-copy-step .btn {
+  padding: 4px 5px;
+}
+
+.order-copy-count {
+  min-width: 16px;
+  text-align: center;
+  font-size: 11.5px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-muted);
+}
+
+/* The board's own sentence, tinted when the arrangement has been touched: "nothing has changed yet" is worth stating. */
+.order-summary {
+  display: block;
+  color: var(--text-muted);
+}
+
+.order-summary[data-tone="changed"] {
+  color: var(--accent-text);
+  font-weight: 600;
+}
+
+/* Touch, and anything without hover: the grip stops being an on-hover affordance and simply stays. */
+@media (hover: none) {
+  .order-grip {
+    opacity: 1;
+  }
+}
+
+@media (max-width: 900px) {
+  .tool-split-board {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  /*
+   * The same 132 px floor on a narrow screen, because 112 px is a tile whose head cannot hold a label and the copy
+   * stepper side by side (defect 240): the row left for them is 94 px, so the two wrap and the head becomes two lines on
+   * every tile. At this floor a phone shows two columns instead of three, and both fit on one line.
+   */
+  .order-pages {
+    grid-template-columns: repeat(auto-fill, minmax(132px, 1fr));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .order-shot:hover .page-shot img {
+    transform: none;
+  }
+}
+
+/* ── The rotate board: one document, and the way each page comes out ─────
+ *
+ * `rotate` draws every page **turned by its own angle** (`features/page-rotate/`), and that is not decoration: the
+ * worker writes `/Rotate` and the renderer applies it, so a page drawn a quarter turn clockwise is a page that will come
+ * out that way, and a page drawn upright is one the request does not touch. The turn itself is a transform on the page
+ * image inside a fixed tile, with a plain scale for the quarter turns — without it the rotated frame is 200 px wide in a
+ * 150 px box and the page is clipped to a strip.
+ */
+.rotate-card {
+  border-color: color-mix(in srgb, var(--accent) 20%, var(--border));
+}
+
+/* The selection field and the sentence that says what the buttons below it act on. */
+.rotate-target {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface-2);
+}
+
+.rotate-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface-2);
+}
+
+.rotate-pages {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(132px, 1fr));
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.rotate-cell {
+  min-width: 0;
+}
+
+.rotate-tile {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  overflow: hidden;
+}
+
+/* A page the request leaves alone is drawn plainly rather than greyed: it is still a page of the document. */
+.rotate-tile[data-untouched="true"] .rotate-shot {
+  background: var(--surface-2);
+}
+
+.rotate-shot {
+  position: relative;
+  display: block;
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  padding: 0;
+  border: 0;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface-2);
+  overflow: hidden;
+  cursor: zoom-in;
+}
+
+/*
+ * The page image, turned. `scale(0.75)` on the quarter turns is the tile's own 3:4 ratio inverted — the frame is 150×200,
+ * so a rotated one is 200×150 and has to come down to fit the width it now has to live in. Nothing is cropped: the whole
+ * page is drawn, smaller, which is the honest picture of a portrait page turned on its side.
+ */
+.rotate-shot .page-shot {
+  transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.rotate-shot[data-turn="90"] .page-shot {
+  transform: rotate(90deg) scale(0.75);
+}
+
+.rotate-shot[data-turn="180"] .page-shot {
+  transform: rotate(180deg);
+}
+
+.rotate-shot[data-turn="270"] .page-shot {
+  transform: rotate(270deg) scale(0.75);
+}
+
+.rotate-shot:hover .page-shot img {
+  transform: scale(1.015);
+}
+
+/*
+ * The page number, in the same plate the other page tiles use: the document's own numbering, not the output's — and it is
+ * the page's **switch**, so the plate is also the control. A page that turns wears the solid plate; a page left as it is
+ * wears a hollow one, which is the same distinction the angle badge makes in words ("90°" against "as is") in the shape
+ * of a toggle, and is legible at tile size where a tick or a cross would not be.
+ */
+.rotate-pos {
+  position: absolute;
+  z-index: 2;
+  top: 7px;
+  left: 7px;
+  min-width: 24px;
+  height: 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 7px;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(26, 29, 46, 0.82);
+  color: #fff;
+  font: inherit;
+  font-size: 11.5px;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+  backdrop-filter: blur(3px);
+  cursor: pointer;
+  transition: background 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
+}
+
+.rotate-pos[data-untouched="true"] {
+  background: rgba(26, 29, 46, 0.42);
+  color: #e5e7eb;
+  box-shadow: inset 0 0 0 1.5px rgba(255, 255, 255, 0.7);
+}
+
+.rotate-pos:hover:not(:disabled) {
+  background: var(--accent);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 45%, transparent);
+}
+
+.rotate-pos:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.rotate-pos:disabled {
+  cursor: not-allowed;
+  opacity: 0.75;
+}
+
+/* The angle, on the picture it is about — the one fact a person is here to check. */
+.rotate-angle {
+  position: absolute;
+  z-index: 2;
+  top: 7px;
+  right: 7px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--accent-weak);
+  color: var(--accent-text);
+  font-size: 11px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  backdrop-filter: blur(3px);
+}
+
+.rotate-angle[data-untouched="true"] {
+  background: rgba(26, 29, 46, 0.7);
+  color: #f3f4f6;
+}
+
+.rotate-tile-body {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 7px 8px 8px;
+}
+
+/* The tile's caption: the angle the page will come out as, on a line of its own under the controls that changed it. It
+   used to share that row, and a 150px tile wrapped it under them anyway — so this is the same drawing, said on purpose. */
+.rotate-tile-state {
+  white-space: nowrap;
+}
+
+/* The mirrored rotation glyph: the arrowhead is the direction, so the reflection is the other direction. */
+.rotate-glyph-flip {
+  display: inline-flex;
+  transform: scaleX(-1);
+}
+
+.rotate-summary {
+  display: block;
+  color: var(--text-muted);
+}
+
+.rotate-summary[data-tone="changed"] {
+  color: var(--accent-text);
+  font-weight: 600;
+}
+
+.rotate-summary[data-tone="blocked"] {
+  color: var(--danger);
+  font-weight: 600;
+}
+
+@media (max-width: 900px) {
+  .rotate-pages {
+    grid-template-columns: repeat(auto-fill, minmax(112px, 1fr));
+  }
+}
+
+/*
+ * Reduced motion removes the **animation**, never the rotation: the turn is the value under test, and dropping it here
+ * would draw every page upright — a preview that disagrees with the job, which is the one thing this screen exists to
+ * prevent. So the transition goes and the transforms stay.
+ */
+@media (prefers-reduced-motion: reduce) {
+  .rotate-shot .page-shot,
+  .rotate-shot:hover .page-shot img {
+    transition: none;
+  }
+}
+
+/* ── The crop board: a box drawn on the page ───────────────────────────── */
+
+/*
+ * The page is the wide column and the document is the narrow one, the way the order board is laid out and for the
+ * opposite reason: there the *output* was the product, here the picture is the control the value is written from, and a
+ * box you are dragging cannot be the smaller half of the screen.
+ */
+.tool-split-crop {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.7fr);
+  align-items: start;
+}
+
+.crop-card {
+  border-color: color-mix(in srgb, var(--accent) 20%, var(--border));
+}
+
+/*
+ * The stage centres the page and gives it a surface of its own, so the paper stops being a floating white rectangle on
+ * whatever the card's background happens to be. It holds no geometry: the fraction arithmetic measures the *page*, and
+ * a stage that letterboxes its child (it does, whenever the page is taller than the space) would be the wrong element
+ * to divide by.
+ */
+.crop-stage {
+  position: relative;
+  display: grid;
+  place-items: center;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--surface-2) 70%, var(--surface));
+  touch-action: none;
+}
+
+.crop-stage[data-grabbing="true"] {
+  cursor: move;
+}
+
+/*
+ * The page: a positioned box with the document's own aspect ratio, and a hard ceiling on its height. The ratio is what
+ * makes the overlay's percentages true — a page drawn into a differently-shaped frame would put the box in the wrong
+ * place on exactly the pages where it matters — and the ceiling is what keeps a portrait A4 from being taller than the
+ * screen it is being dragged on.
+ *
+ * The two limits are expressed **as one width** (`min(column, 620px, 68vh × ratio)`) rather than as a `width` and a
+ * `max-height`, and that is not a style choice: on an element with `aspect-ratio`, `max-height` clamps the height and
+ * leaves the width where it was, so a tall page in a short panel came out squashed — a 595 × 842 page drawn at 620 × 490,
+ * with every box drawn on it the wrong shape and every drag arithmetic against the wrong width. Multiplying the height
+ * ceiling by the ratio turns it into the width it implies, so whichever limit wins, the shape stays the document's.
+ *
+ * The frame is an **outline and not a border**, which looks like a detail and is not: the overlay's percentages resolve
+ * against this element's padding box, and a border would make that box two pixels smaller than the rectangle the drag
+ * arithmetic measures. A 1 px skew is invisible and it is still the value being written — an outline draws the same line
+ * and takes part in nothing. The pointer's own measurements are taken from this element for the same reason.
+ */
+.crop-page {
+  position: relative;
+  /* Set inline from the page's own size; 3/4 is only what a page with no readable size falls back to. */
+  --crop-ratio: 0.75;
+  aspect-ratio: var(--crop-ratio);
+  width: min(100%, 620px, calc(68vh * var(--crop-ratio)));
+  overflow: hidden;
+  outline: 1px solid var(--border);
+  outline-offset: -1px;
+  border-radius: var(--radius-sm);
+  background: #fff;
+  box-shadow: var(--shadow-sm);
+}
+
+/*
+ * The kept rectangle, and the whole point of the screen: `box-shadow` spread is the page **outside** it. One rule
+ * rather than four scrim bands, and it cannot disagree with the rectangle it is the shadow of. `rgba` rather than
+ * `color-mix`: the shadow is painted over a white page, not over a theme surface, so it is the one place a fixed
+ * alpha is the right answer on both themes.
+ */
+.crop-box {
+  position: absolute;
+  box-sizing: border-box;
+  border: 1.5px solid var(--accent);
+  box-shadow: 0 0 0 9999px rgba(15, 23, 42, 0.52);
+  cursor: move;
+  touch-action: none;
+  /* The guide lines on the paper, drawn from the accent at low alpha rather than a token of their own: they are the
+   * box's own colour, faded, and a second indigo would be a second indigo to keep in step. */
+  --crop-guide: color-mix(in srgb, var(--accent) 55%, transparent);
+}
+
+.crop-box[data-grabbing="true"] {
+  border-style: dashed;
+}
+
+/*
+ * The rule of thirds, drawn on the paper: it is the one guide that makes "which part of this page do I keep" a decision
+ * rather than a guess, and a crop tool without it is a rectangle over an unmarked page. Two repeating gradients rather
+ * than four positioned elements — the lines at 33.3 % and 66.6 % on each axis are one pattern, and a pattern cannot
+ * drift out of step with the rectangle it is drawn in.
+ */
+.crop-box::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: repeating-linear-gradient(
+      to right,
+      transparent 0,
+      transparent calc(33.333% - 1px),
+      var(--crop-guide) calc(33.333% - 1px),
+      var(--crop-guide) 33.333%,
+      transparent 33.333%
+    ),
+    repeating-linear-gradient(
+      to bottom,
+      transparent 0,
+      transparent calc(33.333% - 1px),
+      var(--crop-guide) calc(33.333% - 1px),
+      var(--crop-guide) 33.333%,
+      transparent 33.333%
+    );
+}
+
+/*
+ * Eight handles: four corners as squares, four edges as bars. They are drawn *on* the box's own border rather than
+ * beside it, so the grab area is where the line is — and they carry `::after` hit areas larger than their paint, because
+ * a 9 px target is a target only for a mouse.
+ */
+.crop-handle {
+  position: absolute;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  touch-action: none;
+}
+
+.crop-handle::after {
+  content: "";
+  position: absolute;
+  inset: -7px;
+}
+
+.crop-handle-top-left,
+.crop-handle-top-right,
+.crop-handle-bottom-left,
+.crop-handle-bottom-right {
+  width: 13px;
+  height: 13px;
+  border: 2px solid var(--accent);
+  border-radius: 2px;
+  background: #fff;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.28);
+}
+
+/* Each corner sits on the corner it moves, so the handle and the thing it drags are the same point on the page. */
+.crop-handle-top-left {
+  top: -7px;
+  left: -7px;
+  cursor: nwse-resize;
+}
+
+.crop-handle-top-right {
+  top: -7px;
+  right: -7px;
+  cursor: nesw-resize;
+}
+
+.crop-handle-bottom-left {
+  bottom: -7px;
+  left: -7px;
+  cursor: nesw-resize;
+}
+
+.crop-handle-bottom-right {
+  bottom: -7px;
+  right: -7px;
+  cursor: nwse-resize;
+}
+
+/*
+ * The edge bars stop short of the corners so the two hit areas never overlap: a corner over an edge is a drag that
+ * resizes one axis and moves the other, which is the gesture nobody asked for.
+ */
+.crop-handle-top,
+.crop-handle-bottom {
+  left: 14px;
+  right: 14px;
+  height: 9px;
+  cursor: ns-resize;
+}
+
+.crop-handle-top {
+  top: -5px;
+}
+
+.crop-handle-bottom {
+  bottom: -5px;
+}
+
+.crop-handle-left,
+.crop-handle-right {
+  top: 14px;
+  bottom: 14px;
+  width: 9px;
+  cursor: ew-resize;
+}
+
+.crop-handle-left {
+  left: -5px;
+}
+
+.crop-handle-right {
+  right: -5px;
+}
+
+/* The edge bars get a visible line of their own on hover, so the affordance is not just a cursor change. */
+.crop-handle-top:hover::after,
+.crop-handle-bottom:hover::after,
+.crop-handle-left:hover::after,
+.crop-handle-right:hover::after {
+  background: color-mix(in srgb, var(--accent) 22%, transparent);
+  border-radius: 3px;
+}
+
+/*
+ * What the box adds up to, **inside** the box's own top-left corner: the readout is about the rectangle, so it is
+ * pinned to it rather than parked in a corner of the stage — and it stays inside the page because the page clips what
+ * the box's shadow paints, which is also what keeps the scrim off the card around it.
+ */
+.crop-measure {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+  pointer-events: none;
+  box-shadow: var(--shadow-sm);
+}
+
+.crop-measure[data-tone="changed"] {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-contrast, #fff);
+}
+
+/* Auto-crop: the box's place, holding the explanation of why there is no box. */
+.crop-auto {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: 8px;
+  padding: 20px;
+  text-align: center;
+  background: color-mix(in srgb, var(--surface) 86%, transparent);
+  backdrop-filter: blur(2px);
+}
+
+.crop-auto .tiny {
+  max-width: 34ch;
+}
+
+/* The four insets: one row, because they are one value, and the two axes read better side by side than stacked. */
+.crop-inputs {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+/*
+ * The unit rides *inside* the field rather than in its label: four labels that all end in `(mm)` is four repetitions of
+ * a fact that is the same for all of them, and the select above already says it once.
+ */
+.crop-input {
+  position: relative;
+  display: block;
+}
+
+.crop-input-unit {
+  position: absolute;
+  top: 50%;
+  right: 10px;
+  transform: translateY(-50%);
+  color: var(--text-faint);
+  font-size: 11px;
+  pointer-events: none;
+}
+
+/* The quick trims: the amounts a person actually crops by, as buttons, because the first thing a new user needs is not
+ * to know what an inset is. */
+.crop-presets {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.crop-chip {
+  padding: 3px 10px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface-2);
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.crop-chip:hover:not(:disabled) {
+  border-color: var(--accent);
+  color: var(--accent-text);
+}
+
+.crop-chip[data-active="true"] {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: var(--accent-contrast, #fff);
+}
+
+.crop-chip:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.crop-chip-reset {
+  margin-left: auto;
+}
+
+/* The sentence under the board, tinted by the model's own verdict — the same convention the rotate board's uses. */
+.crop-summary {
+  display: block;
+  color: var(--text-muted);
+}
+
+.crop-summary[data-tone="changed"] {
+  color: var(--accent-text);
+  font-weight: 600;
+}
+
+.crop-summary[data-tone="blocked"] {
+  color: var(--danger);
+  font-weight: 600;
+}
+
+/*
+ * The options that are not the box: the units, the page selection and the auto-crop switch, under a rule, so the board
+ * above reads as one subject and the form below as the settings *of* that subject.
+ */
+.crop-side {
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+
+/*
+ * The filmstrip: every page of the document, and whether the box is written onto it.
+ *
+ * The selection used to be reachable only from the advanced panel below — rows of `From`/`To` boxes, which is the right
+ * *spelling* for a page set and the wrong place to decide one, because the pages are drawn eight centimetres above it.
+ * A tile carries both readings at once: the number navigates the drawing (a click puts the box on that page), and the
+ * corner control is that page's membership in the selection. Two gestures rather than one, on purpose — a tile whose
+ * only click toggled membership would make "show me page 7" cost a decision.
+ *
+ * The strip is scrollable rather than wrapping: a document's pages are a *sequence*, and a grid of tiles that reflows
+ * loses the one thing the order of the numbers says.
+ */
+.crop-strip {
+  display: flex;
+  gap: 8px;
+  margin: 0;
+  padding: 8px 2px 4px;
+  list-style: none;
+  overflow-x: auto;
+  scrollbar-width: thin;
+  /*
+   * A strip that sits far down a long page is scrolled to when it is reached by keyboard or by the browser case, and
+   * the shell's topbar is sticky 64 px of that journey: without this, the reach lands *behind* the bar and the click is
+   * intercepted by it (defect 239's second half). `scroll-margin` is the standard opening for a fixed header.
+   */
+  scroll-margin-top: calc(var(--header-height) + 12px);
+}
+
+.crop-strip-tile {
+  position: relative;
+  flex: 0 0 auto;
+  width: 74px;
+  border-radius: var(--radius-sm);
+  outline: 1px solid var(--border);
+  outline-offset: -1px;
+  background: var(--surface-2);
+  scroll-margin-top: calc(var(--header-height) + 12px);
+}
+
+/*
+ * The thumbnail's own frame, and it is load-bearing rather than cosmetic: `.page-shot` is `position: absolute;
+ * inset: 0`, so without a positioned box of its own it stretches to the *tile* and paints over the toggle beneath it —
+ * the picture swallowed the click on the number (defect 239).
+ */
+.crop-strip-shot {
+  position: relative;
+  display: block;
+  height: 96px;
+  overflow: hidden;
+  background: #fff;
+  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+}
+
+/* The page the box is drawn on, marked on the tile as well as named in the head. */
+.crop-strip-tile[data-current="true"] {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+
+/* A page the box is *not* written onto is visibly out of the selection, and readable: it is still a page of the output. */
+.crop-strip-tile[data-cropped="false"] .crop-strip-page {
+  opacity: 0.45;
+}
+
+.crop-strip-page {
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+  background: #fff;
+  cursor: pointer;
+  overflow: hidden;
+  line-height: 0;
+}
+
+/*
+ * The number *is* the toggle, and it shows both facts: which page it is, and whether it is in the selection. A separate
+ * checkbox beside the tile would be a second control for one decision and a second thing to keep in step with the
+ * advanced rows.
+ */
+.crop-strip-toggle {
+  display: block;
+  width: 100%;
+  /* Above the shot, so the number is clickable even if a thumbnail is somehow taller than its frame. */
+  position: relative;
+  z-index: 1;
+  padding: 3px 4px;
+  border: 0;
+  border-top: 1px solid var(--border);
+  border-radius: 0 0 var(--radius-sm) var(--radius-sm);
+  background: var(--surface-2);
+  color: var(--muted);
+  font: inherit;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.crop-strip-toggle[aria-pressed="true"] {
+  background: color-mix(in srgb, var(--accent) 14%, var(--surface-2));
+  color: var(--accent);
+}
+
+.crop-strip-toggle:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* The scope line in the head: which pages the box lands on, and the one click back to the whole document. */
+.crop-scope {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Below the two-column breakpoint the page comes first and the document follows it: what the tool does is the page. */
+@media (max-width: 1024px) {
+  .tool-split-crop {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .tool-split-crop > .upload-card {
+    order: 2;
+  }
+}
+
+@media (max-width: 560px) {
+  .crop-inputs {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* The handle positions and the drawn box depend on a 9 px hit area; a pointer that cannot be precise gets bigger ones. */
+@media (pointer: coarse) {
+  .crop-handle::after {
+    inset: -12px;
+  }
+}
+
+/* ── The sheet board: pages composed onto a piece of paper ─────────────── */
+
+/*
+ * The sheet is the wide column for the same reason the crop page is: the picture *is* the answer to this tool's
+ * question (are the pages still readable at this many per sheet), and a drawing cannot be the smaller half of the
+ * screen. The document and the controls sit beside it, which is also where a person expects the settings of the thing
+ * they are looking at.
+ */
+.tool-split-sheets {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.6fr);
+  align-items: start;
+}
+
+.sheet-card {
+  border-color: color-mix(in srgb, var(--accent) 20%, var(--border));
+}
+
+/*
+ * The stage is a surface, not a measurement: the sheet's own geometry is expressed in percentages of the paper element
+ * inside it, so the letterboxing the stage does is invisible to every number on the screen (`page-crop`'s lesson).
+ */
+.sheet-stage {
+  display: grid;
+  place-items: center;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--surface-2) 70%, var(--surface));
+}
+
+/*
+ * The sheet: the paper's own aspect ratio, and both size limits expressed as **one width**, because on an element with
+ * `aspect-ratio` a `max-height` clamps the height and leaves the width alone — which would draw a landscape sheet
+ * squashed into a portrait one and put every cell in the wrong place while the cell *count* stayed right.
+ */
+.sheet-paper {
+  position: relative;
+  /* Set inline from the sheet's own size; 3/4 is only what a sheet with no measured size falls back to. */
+  --sheet-ratio: 0.75;
+  aspect-ratio: var(--sheet-ratio);
+  width: min(100%, 760px, calc(64vh * var(--sheet-ratio)));
+  background: #fff;
+  outline: 1px solid var(--border);
+  outline-offset: -1px;
+  box-shadow: var(--shadow-sm);
+}
+
+/*
+ * A cell's own box, which is what the `border` option frames and what a test reads a page's position out of. It is an
+ * outline and not a border for the reason the crop page's frame is: a border would take part in the box the percentages
+ * are measured against, and a cell one pixel narrower than the drawing says is the value being promised to the engine.
+ */
+.sheet-slot {
+  position: absolute;
+  pointer-events: none;
+}
+
+.sheet-slot[data-framed="true"] {
+  outline: 1px solid color-mix(in srgb, var(--text) 45%, transparent);
+  outline-offset: -1px;
+}
+
+/*
+ * An empty slot is drawn as a *slot* rather than left out: it is what the last sheet of an odd run looks like, and a
+ * preview that simply stopped drawing would report the same page count with a different sheet.
+ */
+.sheet-slot[data-empty="true"] {
+  outline: 1px dashed color-mix(in srgb, var(--text-faint) 60%, transparent);
+  outline-offset: -1px;
+  background: color-mix(in srgb, var(--surface-2) 55%, transparent);
+}
+
+/*
+ * One page, in its cell. The box is the page's *drawn* rectangle and not the cell's, so a page that does not fill its
+ * cell horizontally is centred by the arithmetic rather than by flexbox — which is what makes the drawing the engine's
+ * own geometry instead of an approximation of it.
+ */
+.sheet-page {
+  position: absolute;
+  padding: 0;
+  border: 0;
+  background: #fff;
+  cursor: zoom-in;
+  /* A hairline **and** a shadow: the page is white on white paper, and the shadow is the only thing that says so at a
+   * glance. It is drawn on the page, not around the cell, so it never suggests a frame the `border` option did not ask
+   * for. */
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--border-strong) 70%, transparent), 0 1px 3px rgb(0 0 0 / 12%);
+}
+
+/*
+ * There was a `.sheet-probe` badge here, and a `[data-probe="true"]` ring on the paper, for the shape a pointer was
+ * trying on. Both are gone with the probe itself: the sheet is only ever drawn from the options that have been chosen,
+ * so there is no state left for a badge to announce or for a ring to mark out (`features/page-sheets/index.tsx`).
+ */
+
+.sheet-page:hover .page-shot img {
+  transform: scale(1.02);
+}
+
+/* A name the eye does not need and a screen reader does: `6` needs the word `per sheet` to be a control's name, and the
+ * strip's `3` needs `of 12`. Clipped rather than `display: none`, because a hidden name is not an accessible name. */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* The page number is on the page it numbers: with sixteen cells on a sheet, "which one is page 9" is a question the
+ * drawing should answer, not one the user should count out. */
+.sheet-page-no {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--text) 72%, transparent);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  pointer-events: none;
+}
+
+.sheet-empty {
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  padding: 28px 20px;
+  text-align: center;
+  max-width: 34ch;
+}
+
+/*
+ * The five layouts as diagrams. A grid of grey cells in the shape the sheet will have, with the count under it — the
+ * one place in this product where a number is worse than a picture, since "6" and "2 × 3" are the same option and only
+ * one of them is legible.
+ */
+.sheet-choices {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.sheet-choice {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  gap: 5px;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: border-color 0.14s ease, background 0.14s ease, color 0.14s ease;
+}
+
+.sheet-choice:hover:not(:disabled) {
+  border-color: var(--accent);
+  color: var(--accent-text);
+}
+
+.sheet-choice[data-active="true"] {
+  border-color: var(--accent);
+  background: var(--accent-weak);
+  color: var(--accent-text);
+}
+
+/* Reachable, not visible: the card is what is clicked, and `:focus-within` is what draws the focus the keyboard needs
+ * — the same pair the panel's segmented control uses, for the same reason. */
+.sheet-choice-input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: 0;
+  padding: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.sheet-choice:focus-within {
+  outline: 2px solid color-mix(in srgb, var(--accent) 55%, transparent);
+  outline-offset: 2px;
+}
+
+.sheet-choice:has(.sheet-choice-input:disabled) {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* The diagram keeps the paper's own ratio (√2), so a 2-up portrait sheet looks like a portrait sheet. */
+.sheet-choice-grid {
+  display: grid;
+  gap: 2px;
+  width: 26px;
+  height: 36px;
+  padding: 2px;
+  border: 1px solid currentColor;
+  border-radius: 2px;
+  background: #fff;
+}
+
+.sheet-choice-cell {
+  background: color-mix(in srgb, currentColor 30%, transparent);
+  border-radius: 1px;
+}
+
+.sheet-choice-label {
+  font-size: 11px;
+  font-weight: 650;
+  line-height: 1;
+}
+
+/* The orientation's own diagram is the sheet's *shape*, so the two buttons are the two papers — and a stock chip's is
+ * the same drawing at that stock's own ratio, which is what tells A4 from Legal at a glance. */
+.sheet-choice-paper {
+  display: block;
+  aspect-ratio: var(--stock-ratio, 0.75);
+  width: 26px;
+  height: 36px;
+  border: 1px solid currentColor;
+  border-radius: 2px;
+  background: #fff;
+}
+
+.sheet-choice-paper[data-orientation="landscape"] {
+  width: 36px;
+  height: 26px;
+  margin: 5px 0;
+}
+
+/* A landscape stock is drawn lying down; the chip itself stays one size so the row reads as a row. */
+.sheet-choice-stock .sheet-choice-paper {
+  max-height: 36px;
+}
+
+.sheet-choice-orientation {
+  align-content: center;
+}
+
+/* The millimetres under a chip's name — the stock's own size, or the cell a layout would leave. Fixed height, because a
+ * row of five papers must not change shape as the caption changes width. */
+.sheet-choice-note {
+  font-size: 10px;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-faint);
+  min-height: 10px;
+}
+
+.sheet-choice[data-active="true"] .sheet-choice-note {
+  color: var(--accent-text);
+}
+
+/*
+ * The shape controls: the three options that decide what paper the sheet is, under its picture, in one wrapping row.
+ *
+ * Under the picture and not in the form beside it — the stock, the orientation and the layout are the three things the
+ * drawing *is*, and a screen that shows a sheet while asking about the sheet in a dropdown is two screens. The gap and
+ * the frame stay in the panel, because they are settings of a paper rather than facts about its shape.
+ */
+.sheet-shape {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px 22px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+
+.sheet-group {
+  display: grid;
+  gap: 7px;
+  align-content: start;
+  min-width: 0;
+}
+
+.sheet-group-gap .sheet-gaps {
+  gap: 5px;
+}
+
+/*
+ * The sheets of the run: the arrows and the chips are one control, so a twenty-sheet run is stepped through rather than
+ * scrolled past (`+n more` and the arrows reach the rest).
+ */
+.sheet-nav {
+  display: flex;
+  align-items: flex-end;
+  gap: 6px;
+}
+
+.sheet-nav .sheet-strip {
+  flex: 1 1 auto;
+}
+
+/* The rest of the options — stock, gap, frame — under a rule, so the shape choices above read as one group. */
+.sheet-settings {
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+
+/*
+ * The strip under the drawing: one chip per sheet, which is the only way to see that a run produced twelve sheets and
+ * where the last one's empty slots are. It is capped, because fifty chips is a list rather than a control.
+ */
+.sheet-strip {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 6px;
+  min-width: 0;
+}
+
+.sheet-chip {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  gap: 3px;
+  padding: 4px 6px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.sheet-chip:hover {
+  border-color: var(--accent);
+}
+
+.sheet-chip[data-active="true"] {
+  border-color: var(--accent);
+  background: var(--accent-weak);
+  color: var(--accent-text);
+}
+
+.sheet-chip:focus-within {
+  outline: 2px solid color-mix(in srgb, var(--accent) 55%, transparent);
+  outline-offset: 2px;
+}
+
+.sheet-chip-paper {
+  display: block;
+  aspect-ratio: var(--sheet-ratio, 0.75);
+  width: 20px;
+  border: 1px solid currentColor;
+  border-radius: 2px;
+  background: #fff;
+}
+
+.sheet-chip-no {
+  font-size: 10px;
+  font-weight: 650;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+/* The sentence under the board, tinted by the model's verdict — `changed` for a plain answer, `note` when the sheet is
+ * sized from the first page or a page could not be measured, `blocked` when the plan's ceiling refuses the run. */
+.sheet-summary {
+  display: block;
+  color: var(--text-muted);
+}
+
+.sheet-summary[data-tone="changed"] {
+  color: var(--accent-text);
+  font-weight: 600;
+}
+
+.sheet-summary[data-tone="note"] {
+  color: var(--warning);
+  font-weight: 600;
+}
+
+.sheet-summary[data-tone="blocked"] {
+  color: var(--danger);
+  font-weight: 600;
+}
+
+/* The quick gaps. The cell size each one leaves is on the layout cards above, where the choice that consumes it is. */
+.sheet-gaps {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.sheet-chip-gap {
+  padding: 3px 10px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface-2);
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.sheet-chip-gap:hover:not(:disabled) {
+  border-color: var(--accent);
+  color: var(--accent-text);
+}
+
+.sheet-chip-gap[data-active="true"] {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: var(--accent-contrast, #fff);
+}
+
+.sheet-chip-gap:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Below the two-column breakpoint the sheet comes first: what the tool does is the sheet. */
+@media (max-width: 1024px) {
+  .tool-split-sheets {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .tool-split-sheets > .upload-card {
+    order: 2;
+  }
+}
+
+/* ── The range rows: one row per output file ───────────────────────────── */
+
+/*
+ * A range is two numbers, so it is two boxes — and the hyphen between them is drawn, not typed.
+ *
+ * That is not cosmetic: `4-` was a state the old single box could reach and the API could not accept, and empty `to`
+ * here means *one page*, so the half-typed range is unrepresentable rather than merely rejected. The row keeps its
+ * number and its remove button, which is disabled rather than hidden because the last row is the one that cannot go.
+ */
+.range-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.range-row {
+  display: grid;
+  grid-template-columns: 26px minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 8px;
+  padding: 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface-2);
+}
+
+.range-row-body {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+/* The row badge, shared by both rows controls: one number, in the same plate, whatever the row holds. */
+.range-row-no,
+.page-row-no {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--accent) 16%, var(--surface));
+  color: var(--accent-text);
+  font-size: 11.5px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+/* The two boxes and the join between them: `1` – `5`, at one width so a column of ranges lines up. */
+.range-pair {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.range-box {
+  width: 84px;
+  flex: none;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.range-pair-dash {
+  color: var(--text-faint);
+  font-weight: 700;
+}
+
+/*
+ * Several ranges can go into **one** file, which the schema allows and the worker reads — so the control has to be able
+ * to say it. A faint button inside the row, at full strength on hover or focus, so it is discoverable without competing
+ * with `Add a range` (which makes a new file).
+ */
+.range-more {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  align-self: flex-start;
+  padding: 2px 4px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: none;
+  color: var(--text-faint);
+  font-size: 11.5px;
+  cursor: pointer;
+  opacity: 0.72;
+  transition: color 0.14s ease, opacity 0.14s ease;
+}
+
+.range-row:hover .range-more,
+.range-more:focus-visible {
+  opacity: 1;
+}
+
+.range-more:hover {
+  color: var(--accent-text);
+}
+
+.range-row-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+/*
+ * A page selection as rows of boxes — `extract-pages` and `delete-pages` (`page-rows.tsx`).
+ *
+ * One box per page and two per range, in the same plate as a split's rows so the two controls read as one family —
+ * but **without** the several-ranges-in-one-file affordance, because here every row is part of one selection and
+ * nothing is grouped.
+ */
+.page-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.page-row {
+  display: grid;
+  grid-template-columns: 26px minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 8px;
+  padding: 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface-2);
+  transition: border-color 0.14s ease;
+}
+
+.page-row:hover {
+  border-color: color-mix(in srgb, var(--accent) 32%, var(--border));
+}
+
+/* The row that is reporting the mistake, at the row itself: a red sentence beside a row that looks fine is half an
+   answer. */
+.page-row[data-invalid="true"] {
+  border-color: var(--danger);
+  background: var(--danger-weak);
+}
+
+.page-row-boxes {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+/*
+ * The rows control while the arrangement is a map of page → angle (`rotate`'s `perPage`, `features/tool-shell/page-rows.tsx`).
+ *
+ * The rows are a **reading** here: one run of pages that turn one way, and the words for that way. So the plate and the
+ * hyphen give way to the run itself, the row stops glowing on hover (there is nothing to click), and the run keeps the
+ * boxes' width so a column of runs lines up under the angles beside them. The row's border, padding and radius are the
+ * control's own — that is what keeps this looking like the same control in a different state rather than like a message
+ * that replaced it.
+ */
+.page-row[data-reading="true"] {
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.page-row[data-reading="true"]:hover {
+  border-color: var(--border);
+}
+
+.page-row-run {
+  min-width: 84px;
+  padding: 5px 10px;
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--accent) 12%, var(--surface));
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+
+.page-row-note {
+  padding-right: 4px;
+  white-space: nowrap;
+}
+
+/*
+ * Turning a page into a range without retyping it. Faint until the row is hovered or the button is focused, so it is
+ * discoverable without competing with the two `Add …` buttons (which make a new decision).
+ */
+.page-row-widen {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 6px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: none;
+  color: var(--text-faint);
+  font-size: 11.5px;
+  cursor: pointer;
+  opacity: 0.62;
+  transition: color 0.14s ease, opacity 0.14s ease;
+}
+
+.page-row:hover .page-row-widen,
+.page-row-widen:focus-visible {
+  opacity: 1;
+}
+
+.page-row-widen:hover {
+  color: var(--accent-text);
+}
+
+/* What the selection adds up to, in the direction the choice above put it. The tone is the control's own verdict, and
+   the two non-`ok` tones are the two states the worker refuses — said here rather than discovered at Submit. */
+.page-rows-summary[data-tone="ok"] {
+  color: var(--text-muted);
+}
+
+.page-rows-summary[data-tone="empty"] {
+  color: var(--text-faint);
+}
+
+.page-rows-summary[data-tone="warn"] {
+  color: var(--warning);
+}
+
+/*
+ * A choice drawn as cards — `extract-pages`'s direction (`segmented.tsx`).
+ *
+ * Two alternatives side by side rather than one behind a click, because this choice re-decides the meaning of every
+ * control below it. The radio input is visually hidden and the card is the label, so the whole card is the hit target
+ * while the keyboard and the screen reader still get a real radio group.
+ */
+.segmented {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 8px;
+}
+
+.segmented-card {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 11px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface-2);
+  cursor: pointer;
+  transition: border-color 0.14s ease, background 0.14s ease, box-shadow 0.14s ease;
+}
+
+.segmented-card:hover {
+  border-color: color-mix(in srgb, var(--accent) 38%, var(--border));
+}
+
+.segmented-card[data-active="true"] {
+  border-color: color-mix(in srgb, var(--accent) 62%, var(--border));
+  background: color-mix(in srgb, var(--accent) 7%, var(--surface));
+  box-shadow: var(--shadow-sm);
+}
+
+/* Reachable, not visible: the card is what is clicked, and `:focus-within` is what draws the focus the keyboard needs. */
+.segmented-input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: 0;
+  padding: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.segmented-card:focus-within {
+  outline: 2px solid color-mix(in srgb, var(--accent) 55%, transparent);
+  outline-offset: 2px;
+}
+
+.segmented-glyph {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 30px;
+  height: 30px;
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--accent) 12%, var(--surface));
+  color: var(--accent-text);
+}
+
+.segmented-card[data-active="true"] .segmented-glyph {
+  background: color-mix(in srgb, var(--accent) 20%, var(--surface));
+}
+
+.segmented-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.segmented-check {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 18px;
+  height: 18px;
+  margin-left: auto;
+  border-radius: 999px;
+  color: var(--accent-text);
+}
+
+/*
+ * The empty-state pulse, and its off switch — **after** the rule that starts it, because a media query adds no
+ * specificity and one written above its base rule loses on order (defect 213, and the lesson pass 47 wrote down).
+ */
+@keyframes pd-pulse {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-3px);
+  }
+}
+
+@media (max-width: 900px) {
+  .range-box {
+    width: 100%;
+    min-width: 0;
+  }
+
+  /* A page row's boxes keep the width rule above and wrap rather than being squeezed, so the narrow story is the same
+     one the split control already tells with the same boxes. */
+  .page-row-boxes {
+    flex-wrap: wrap;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .upload-card[data-empty="true"] .dropzone-icon {
+    animation: none;
+  }
+}
+
+/* ── The drawn page ────────────────────────────────────────────────────── */
+
+.page-shot {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+}
+
+.page-shot img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  background: #fff;
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.page-shot-skeleton {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, var(--surface-2), var(--border), var(--surface-2));
+  background-size: 200% 100%;
+  animation: shimmer 1.3s ease-in-out infinite;
+}
+
+/*
+ * A page is being replaced: the frame that is up dims and gets a loader, instead of disappearing.
+ *
+ * This is the fix for stepping through a preview and watching it blink. Clearing the image while the next page is
+ * drawn costs two visual changes per step — one to nothing, one to the page — and the empty state is the one that
+ * reads as a fault. Keeping the previous page up has neither problem, and it is honest: the frame *is* out of date and
+ * the loader says so.
+ */
+.page-shot[data-busy="true"] img {
+  opacity: 0.42;
+  filter: blur(1.2px) saturate(0.85);
+  transition: opacity 0.15s ease, filter 0.15s ease;
+}
+
+.page-shot-busy {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+}
+
+/*
+ * The halo is what makes one spinner work on both surfaces: the lightbox draws a page that is mostly white, and a
+ * spinner with no ring under it would be a smudge on the paper rather than a control state.
+ */
+.page-shot-busy .spinner {
+  width: 22px;
+  height: 22px;
+  border-width: 2.5px;
+  box-shadow: 0 0 0 6px color-mix(in srgb, var(--surface) 72%, transparent);
+}
+
+.page-shot-empty {
+  display: grid;
+  place-items: center;
+  color: var(--text-faint);
+}
+
+.page-chips {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.page-chip {
+  padding: 1px 7px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--text-muted);
+  font-size: 11.5px;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  transition: border-color 0.14s ease, color 0.14s ease, background 0.14s ease;
+}
+
+.page-chip:hover {
+  border-color: var(--accent);
+  background: var(--accent-weak);
+  color: var(--accent-text);
+}
+
+.page-chip-more {
+  font-weight: 650;
+}
+
+/* ── The lightbox: one page, large enough to read ──────────────────────── */
+
+.lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(15, 17, 23, 0.66);
+  animation: pd-fade 0.15s ease both;
+}
+
+/* The click-away surface, under the panel: one big button that closes, drawn as nothing. */
+.lightbox-backdrop {
+  position: absolute;
+  inset: 0;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  cursor: default;
+}
+
+@keyframes pd-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/*
+ * It is a `<dialog open>`, so the reset below is not decoration: the UA's own dialog styles are `position: absolute`,
+ * `inset: 0` with `margin: auto`, `width: fit-content` and a 1em border, and every one of those has to be turned off
+ * before this reads as the panel the scrim is centring. (`right: 0` alone losing to `inset: 0` is the defect that
+ * cost an afternoon on the `ⓘ` popover; the fix there and the fix here are the same two-sided reset.)
+ */
+.lightbox-panel {
+  position: relative;
+  inset: auto;
+  margin: 0;
+  width: min(1040px, 100%);
+  max-width: none;
+  height: auto;
+  max-height: calc(100vh - 48px);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: var(--shadow-lg);
+  animation: pd-pop 0.18s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.lightbox-panel:focus {
+  outline: none;
+}
+
+.lightbox-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.lightbox-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: grid;
+  place-items: center;
+  padding: 10px;
+  border-radius: var(--radius);
+  background: var(--surface-2);
+  overflow: auto;
+}
+
+/* Inside the lightbox the page sets its own size: `contain` against the panel, never enlarged past the render. */
+.lightbox-body .page-shot {
+  position: static;
+  inset: auto;
+  width: 100%;
+  height: 100%;
+}
+
+.lightbox-body .page-shot img {
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  max-height: calc(100vh - 220px);
+  border-radius: 3px;
+  box-shadow: var(--shadow);
+}
+
+.lightbox-foot {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+/* ── The options section inside the job card ───────────────────────────── */
+
+/*
+ * A divider and a collapsing heading rather than a second card. The files and the options are one request, and a card
+ * boundary between them says otherwise; the toggle is what keeps that from meaning a form twice as tall.
+ */
+.job-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 2px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
+}
+
+.section-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  cursor: pointer;
+  text-align: left;
+}
+
+.section-toggle:hover .label {
+  color: var(--text-muted);
+}
+
+.section-toggle:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+  border-radius: 6px;
+}
+
+.section-toggle-caret {
+  display: inline-flex;
+  color: var(--text-faint);
+  transition: transform 0.16s ease;
+}
+
+.section-toggle-caret[data-open="false"] {
+  transform: rotate(-90deg);
+}
+
+.flip-x {
+  display: inline-flex;
+  transform: rotate(180deg);
+}
+
+.page-title-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  flex: 0 0 auto;
+  border-radius: 11px;
+  background: var(--accent-weak);
+  color: var(--accent-text);
+}
+
+@media (max-width: 560px) {
+  .board-grid {
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  }
+
+  .lightbox {
+    padding: 10px;
+  }
+}
+
+.order-strip {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.order-strip-bar {
+  display: flex;
+  gap: 3px;
+  height: 30px;
+}
+
+.order-segment {
+  display: flex;
+  flex: 1 1 0;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  border-radius: 7px;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  overflow: hidden;
+  cursor: default;
+  transition: opacity 0.14s ease, filter 0.14s ease;
+}
+
+.order-segment[data-tone="0"] {
+  background: #6366f1;
+}
+.order-segment[data-tone="1"] {
+  background: #7c3aed;
+}
+.order-segment[data-tone="2"] {
+  background: #2563eb;
+}
+.order-segment[data-tone="3"] {
+  background: #0f766e;
+}
+.order-segment[data-tone="4"] {
+  background: #b45309;
+}
+
+.order-segment[data-dim="true"] {
+  opacity: 0.3;
+}
+
+.order-segment:hover {
+  filter: brightness(1.08);
+}
+
+/* ── The tool page's banner ─────────────────────────────────────────────── */
+
+/*
+ * The landing's hero, one size down and aimed at one tool.
+ *
+ * It is the same object on purpose — same gradient wash, same drifting blobs, same tokens — because a person who came
+ * from the landing should recognise where they are, and a tool page that opened with a bare `<h1>` read as a form
+ * rather than as the thing they picked. What changes is the scale: the title is a title here, not an invitation, and
+ * the files under it are what the person came for. The hero's own paddings are the landing's (`46px 40px`); these are
+ * `28px 30px`, 24 of the 46 removed and nothing else, so the two still read as the same family.
+ */
+/*
+ * `overflow: visible` because the banner is now a container for a panel as well as for its own copy: the two blobs it
+ * used to crop live in `.hero-glow`, which crops them exactly as this box did, and everything else the box holds (the
+ * icon, the copy, the illustration) measures inside it. The `ⓘ` panel does not.
+ */
+.tool-hero {
+  overflow: visible;
+  padding: 28px 30px 26px;
+  border-radius: 20px;
+}
+
+.tool-hero-inner {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 22px;
+  align-items: center;
+}
+
+.tool-hero-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  height: 52px;
+  flex: 0 0 auto;
+  border-radius: 15px;
+  color: #fff;
+  box-shadow: var(--shadow);
+}
+
+.tool-hero-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+}
+
+/* The pill is a sentence, not a full-width bar: in a flex column it would stretch to the banner's width by default. */
+.tool-hero-copy .pill {
+  align-self: flex-start;
+}
+
+.tool-hero-title {
+  font-size: clamp(22px, 2.6vw, 32px);
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+
+.tool-hero-summary {
+  max-width: 660px;
+  font-size: 13.5px;
+}
+
+.tool-hero-facts {
+  font-size: 12px;
+}
+
+/* The facts and the `ⓘ` on one line: two sibling answers, not a list and a toolbar. */
+.tool-hero-meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 7px 20px;
+}
+
+@media (max-width: 900px) {
+  .tool-hero {
+    padding: 22px 18px 20px;
+  }
+
+  .tool-hero-inner {
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 14px;
+  }
+}
+
+/*
+ * The banner's illustration: sheets sliding into one page.
+ *
+ * Three sheets, staggered, each fading in from the left, holding, and leaving to the right into the tinted output
+ * page — so the picture is the tool's own sentence ("several go in, one comes out") rather than a document glyph.
+ * `data-multi="false"` collapses it to a single sheet for the tools that take one file, because an illustration that
+ * claims a merge on `linearize` is a lie the eye reads before the copy.
+ *
+ * Everything here is `transform` and `opacity`, and both sheets are switched off for a reader whose system asks for
+ * reduced motion.
+ */
+.merge-art {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  flex: 0 0 auto;
+}
+
+.merge-art-stack {
+  position: relative;
+  /* Wide enough for the fan to spill into rather than clipping at the stack's own box. */
+  width: 58px;
+  height: 66px;
+}
+
+/*
+ * A **fanned deck** with one sheet in flight, rather than three sheets shuffling.
+ *
+ * Two attempts got here. The first parked the sheets on top of each other: they are opaque, so the deck read as one
+ * page and the animation only looked like anything while a sheet was moving — a screenshot caught exactly that. The
+ * second gave every sheet a turn, which is worse in a different way: with a stagger shorter than the leaving window
+ * there are instants where *all three* are in transit, and the illustration goes empty for a moment every cycle.
+ *
+ * So the bottom sheet never moves. It is the deck, it is always drawn, and the two above it take turns arriving and
+ * leaving — which is also what the picture is meant to say: pages accumulate into one document.
+ */
+.merge-art-sheet:nth-child(1) {
+  --fx: -8px;
+  --fy: 5px;
+  --fr: -6deg;
+  /* The deck. Static, and deliberately first in the DOM so everything else lands on top of it. */
+  animation: none;
+  transform: translate3d(-8px, 5px, 0) rotate(-6deg);
+}
+
+.merge-art-sheet:nth-child(2) {
+  --fx: 0px;
+  --fy: 0px;
+  --fr: 1.5deg;
+}
+
+.merge-art-sheet:nth-child(3) {
+  --fx: 8px;
+  --fy: -4px;
+  --fr: 6deg;
+  /* Half a cycle behind its partner, so one of the two is on the deck at every instant. */
+  animation-delay: 1.6s;
+}
+
+.merge-art-sheet {
+  position: absolute;
+  inset: 0;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: linear-gradient(180deg, var(--surface), var(--surface-2));
+  box-shadow: var(--shadow-sm);
+  animation: pd-converge 3.2s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+  animation-delay: var(--d, 0ms);
+}
+
+/* Three ruled lines: enough for the eye to read "document", and drawn rather than shipped. */
+.merge-art-sheet::after {
+  content: "";
+  position: absolute;
+  top: 13px;
+  left: 9px;
+  right: 9px;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--border);
+  box-shadow: 0 7px 0 var(--border), 0 14px 0 var(--border);
+}
+
+.merge-art[data-multi="false"] .merge-art-sheet {
+  animation: pd-float 6.5s ease-in-out infinite;
+}
+
+.merge-art[data-multi="false"] .merge-art-sheet:nth-child(n + 2),
+.merge-art[data-multi="false"] .merge-art-link {
+  display: none;
+}
+
+.merge-art-link {
+  width: 22px;
+  height: 2px;
+  border-radius: 2px;
+  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--accent) 55%, transparent));
+}
+
+.merge-art-out {
+  position: relative;
+  width: 52px;
+  height: 66px;
+  border-radius: 6px;
+  background: linear-gradient(135deg, #6366f1, #8b5cf6 52%, #06b6d4);
+  box-shadow: var(--shadow);
+  animation: pd-float 6.5s ease-in-out infinite;
+}
+
+.merge-art-out::after {
+  content: "";
+  position: absolute;
+  top: 13px;
+  left: 9px;
+  right: 9px;
+  height: 2px;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.75);
+  box-shadow: 0 7px 0 rgba(255, 255, 255, 0.55), 0 14px 0 rgba(255, 255, 255, 0.4);
+}
+
+/*
+ * Parked for most of the cycle, in flight for the rest: the dwell is 46% of 3.2s, so a sheet that arrives stays put
+ * long enough to be read as a page and the movement between them is the exception rather than the state.
+ */
+@keyframes pd-converge {
+  0% {
+    opacity: 0;
+    transform: translate3d(calc(-34px + var(--fx, 0px)), calc(10px + var(--fy, 0px)), 0) rotate(-12deg) scale(0.94);
+  }
+  16%,
+  62% {
+    opacity: 1;
+    transform: translate3d(var(--fx, 0px), var(--fy, 0px), 0) rotate(var(--fr, 0deg));
+  }
+  86%,
+  100% {
+    opacity: 0;
+    transform: translate3d(34px, var(--fy, 0px), 0) rotate(7deg) scale(0.9);
+  }
+}
+
+/*
+ * Both overrides belong here, at the end of the section, and the reason is the cascade rather than tidiness.
+ *
+ * A media query adds no specificity: a rule that clears `display` or `animation` only wins if it is *later* than the
+ * rule it clears. The first version of this wrote the phone rule up in the banner's own media block and added the two
+ * animation names to the file's shared reduced-motion block — both of which sit **above** the base rules below them, so
+ * neither did anything: measured at 430px the illustration was still drawn, and the sheets kept moving for a reader
+ * who had asked the system for no motion. Both facts came from measuring the running bundle, not from reading it.
+ */
+@media (max-width: 900px) {
+  /* The illustration is the third column and the first thing to go: on a phone the copy is the whole banner. */
+  .merge-art,
+  .order-art {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .merge-art-sheet,
+  .merge-art-out,
+  .order-art-sheet {
+    animation: none;
+  }
+}
+
+/*
+ * The reorder banner: three numbered sheets, and the first one stepping to the end.
+ *
+ * The step is `100px` right for the mover (two sheet-widths plus the two gaps) and `-50px` left for the other two, so
+ * the three arrive in the order 2, 3, 1 with no gap ever opening on the rail. The reset is **invisible** — the sheets
+ * fade out at their new places and back in where they started — because a visible snap back would read as an undo rather
+ * than as a loop, and this picture is meant to say "the order changed", not "it changed and changed back".
+ *
+ * The mover is lifted (`z-index`, shadow, scale) while it travels: three identical sheets shuffling past each other is
+ * unreadable, and "which one moved" is the whole sentence.
+ */
+.order-art {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 0 0 auto;
+  padding: 4px;
+}
+
+.order-art-sheet {
+  position: relative;
+  width: 42px;
+  height: 54px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: linear-gradient(180deg, var(--surface), var(--surface-2));
+  box-shadow: var(--shadow-sm);
+  animation: order-art-step 5.2s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+}
+
+.order-art-sheet[data-slot="0"] {
+  --step: 100px;
+  z-index: 2;
+  border-color: color-mix(in srgb, var(--accent) 45%, var(--border));
+}
+
+.order-art-sheet[data-slot="1"],
+.order-art-sheet[data-slot="2"] {
+  --step: -50px;
+}
+
+/* Two ruled lines, as on the merge sheets: enough for the eye to read "page". */
+.order-art-sheet::after {
+  content: "";
+  position: absolute;
+  top: 15px;
+  left: 7px;
+  right: 7px;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--border);
+  box-shadow: 0 8px 0 var(--border);
+}
+
+/* The number, on a plate at the foot of the sheet — the fact that makes the movement an *order* rather than a shuffle. */
+.order-art-no {
+  position: absolute;
+  z-index: 2;
+  bottom: 5px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: grid;
+  place-items: center;
+  min-width: 18px;
+  height: 15px;
+  padding: 0 4px;
+  border-radius: 999px;
+  background: var(--accent-weak);
+  color: var(--accent-text);
+  font-size: 10px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+@keyframes order-art-step {
+  0%,
+  42% {
+    transform: translate3d(0, 0, 0);
+    opacity: 1;
+  }
+  58%,
+  84% {
+    transform: translate3d(var(--step, 0px), 0, 0) scale(1.04);
+    opacity: 1;
+  }
+  /* Fade out where it landed, reappear where it started: the loop has no visible snap-back. */
+  86% {
+    transform: translate3d(var(--step, 0px), 0, 0) scale(1.04);
+    opacity: 0;
+  }
+  88% {
+    transform: translate3d(0, 0, 0);
+    opacity: 0;
+  }
+  100% {
+    transform: translate3d(0, 0, 0);
+    opacity: 1;
+  }
+}
+
+/* ── The page-wide drop target ─────────────────────────────────────────── */
+
+/*
+ * `pointer-events: none` is not tidiness: an overlay that accepted the pointer would become the drop target, and the
+ * page-level listener's enter/leave depth would be counting crossings of the overlay instead of the window.
+ */
+.drop-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(15, 17, 23, 0.45);
+  pointer-events: none;
+}
+
+.drop-overlay-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  max-width: min(420px, calc(100vw - 40px));
+  padding: 26px 38px;
+  border: 2px dashed var(--accent);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  box-shadow: var(--shadow-lg);
+  color: var(--accent-text);
+  text-align: center;
+  animation: pd-pop 0.2s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* ── The run card, and the bar that replaces it on a phone ─────────────── */
+
+/*
+ * The run card is the whole width and sits *under* the job card, so it is no longer sticky: it is the last thing in a
+ * short page rather than a column that had to stay in view while a long file list was scrolled. The tint is what says
+ * "the action is here" now that position cannot.
+ */
+.run-card {
+  border-color: color-mix(in srgb, var(--accent) 28%, var(--border));
+  background: linear-gradient(180deg, color-mix(in srgb, var(--accent-weak) 46%, var(--surface)), var(--surface));
+}
+
+/*
+ * What the job will do on the left, the control that starts it on the right. Reading it left-to-right now tells the
+ * whole story of the card, which is what the narrow column could not do.
+ */
+.run-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.run-row-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.run-row-side {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+/* Below the two-column breakpoint the button lives in the sticky bar, so this row is only ever the note above it. */
+@media (max-width: 900px) {
+  .run-row-side {
+    width: 100%;
+    justify-content: flex-start;
+  }
+}
+
+/*
+ * Below the two-column breakpoint the run card is the *last* thing in a very long column, so the action moves to the
+ * bottom of the viewport and the in-card button is not rendered at all (`useNarrowViewport`): one control, one place,
+ * at every width.
+ */
+.run-bar {
+  position: fixed;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 45;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px calc(10px + env(safe-area-inset-bottom));
+  border-top: 1px solid var(--border);
+  background: color-mix(in srgb, var(--surface) 92%, transparent);
+  backdrop-filter: blur(10px);
+}
+
+@media (min-width: 901px) {
+  .run-bar {
+    display: none;
+  }
+}
+
+@media (max-width: 900px) {
+  /* Room for the bar, so the last card is not sitting underneath it. */
+  .page {
+    padding-bottom: 76px;
+  }
+}
+
+/* ── Result: the comparison and the thumbnails ─────────────────────────── */
+
+.compare {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-left-width: 3px;
+  border-radius: var(--radius);
+  background: var(--surface-2);
+}
+
+.compare[data-tone="success"] {
+  border-left-color: var(--success);
+}
+.compare[data-tone="warning"] {
+  border-left-color: var(--warning);
+}
+.compare[data-tone="neutral"] {
+  border-left-color: var(--border-strong);
+}
+
+.facts {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin: 0;
+}
+
+.facts-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.facts-row dt {
+  white-space: nowrap;
+}
+
+.facts-row dd {
+  margin: 0;
+  font-size: 13px;
+  text-align: right;
+}
+
+.result-thumbs {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+  gap: 10px;
+}
+
+.result-thumb {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 6px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--text);
+  text-decoration: none;
+}
+
+.result-thumb:hover {
+  border-color: var(--accent);
+  text-decoration: none;
+}
+
+.result-thumb img {
+  width: 100%;
+  height: 104px;
+  border-radius: 6px;
+  background: var(--surface-2);
+  object-fit: contain;
+}
+
+.result-thumb-more {
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+/* ── The info tip ──────────────────────────────────────────────────────── */
+
+.infotip {
+  position: relative;
+  display: inline-flex;
+}
+
+.infotip-trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: border-color 0.14s ease, background 0.14s ease, color 0.14s ease;
+}
+
+.infotip-trigger:hover,
+.infotip-trigger[aria-expanded="true"] {
+  border-color: var(--accent);
+  background: var(--accent-weak);
+  color: var(--accent-text);
+}
+
+/*
+ * Anchored to its trigger and clamped to the viewport, because the trigger sits in a page header on the right-hand
+ * side of a phone where a 340px panel anchored left would be half off-screen.
+ */
+.infotip-panel {
+  position: absolute;
+  top: calc(100% + 8px);
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: min(340px, calc(100vw - 32px));
+  /*
+   * A non-modal `<dialog>` arrives wearing the user agent's own geometry: `inset-block: 0`, `margin: auto` and a
+   * `max-width` derived from its containing block. All three are undone here, and the `inset-inline` pair is why the
+   * `left`/`right` below are written as pairs — the agent sets **both** sides to 0, so an author rule that sets only
+   * one of them loses the over-constrained case and the panel sits at `left: 0` off the side of the page.
+   */
+  margin: 0;
+  max-width: calc(100vw - 32px);
+  /*
+   * The height is capped by `InfoTip` itself rather than here, because what it is capped to is the room on the side the
+   * panel was drawn on — which depends on where the trigger is and on every ancestor that clips, and no media query knows
+   * either. This is the other half of that: a panel shorter than its own content scrolls it rather than cutting it, so a
+   * short window costs the reader a wheel turn and never a fact they cannot reach (measured at 1440 × 300: the bar's
+   * panel is 157 px tall for 176 px of facts, and every one of them is a scroll away).
+   */
+  overflow-y: auto;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: var(--shadow-lg);
+  animation: pd-pop 0.18s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.infotip-panel[data-align="end"] {
+  right: 0;
+  left: auto;
+}
+
+.infotip-panel[data-align="start"] {
+  left: 0;
+  right: auto;
+}
+
+/*
+ * A trigger at the foot of a column that has its own scroll (`features/placement/index.tsx`) opens **upward**: the
+ * panel is the taller of the two boxes, and below the trigger there is only the scroll container's overflow — which is
+ * to say a panel the reader would have to scroll, after opening it, to read. Anchoring it above puts the whole panel
+ * in the room the column already shows.
+ */
+.infotip-panel[data-side="above"] {
+  top: auto;
+  bottom: calc(100% + 8px);
+}

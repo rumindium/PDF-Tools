@@ -1,0 +1,12 @@
+# Public tool pages are indexable; anything with a job, file, account or session id is not.
+User-agent: *
+Allow: /
+Allow: /tools
+Disallow: /api/
+Disallow: /jobs
+Disallow: /account
+Disallow: /admin
+Disallow: /auth/
+Disallow: /sso/
+
+Sitemap: https://pdf.rumindium.id/sitemap.xml

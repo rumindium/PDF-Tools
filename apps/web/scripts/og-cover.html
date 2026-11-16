@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      body {
+        width: 1200px;
+        height: 630px;
+        overflow: hidden;
+        font-family: 'Inter', 'Roboto', 'Noto Sans', 'Liberation Sans', 'DejaVu Sans', sans-serif;
+        background: #0b1020;
+        color: #fff;
+        display: flex;
+        align-items: center;
+      }
+      .bg {
+        position: absolute;
+        inset: 0;
+        background:
+          radial-gradient(700px 420px at 12% 20%, rgba(99, 102, 241, 0.45), transparent 65%),
+          radial-gradient(560px 380px at 88% 85%, rgba(26, 115, 232, 0.4), transparent 65%),
+          #0b1020;
+      }
+      .grid {
+        position: absolute;
+        inset: 0;
+        opacity: 0.10;
+        background-image:
+          linear-gradient(rgba(255,255,255,0.5) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(255,255,255,0.5) 1px, transparent 1px);
+        background-size: 48px 48px;
+        mask-image: radial-gradient(closest-side at 50% 50%, black, transparent);
+      }
+      .inner {
+        position: relative;
+        display: flex;
+        align-items: center;
+        gap: 56px;
+        padding: 0 88px;
+        width: 100%;
+      }
+      .badge {
+        width: 196px;
+        height: 196px;
+        border-radius: 48px;
+        background: linear-gradient(135deg, #6366f1, #1a73e8);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 24px 70px rgba(99, 102, 241, 0.5);
+        flex: 0 0 auto;
+      }
+      h1 {
+        font-size: 84px;
+        line-height: 1.02;
+        letter-spacing: -1.5px;
+        font-weight: 800;
+      }
+      h1 .grad {
+        background: linear-gradient(90deg, #a5b4fc, #60a5fa);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+      }
+      p {
+        margin-top: 20px;
+        font-size: 31px;
+        line-height: 1.4;
+        color: rgba(255, 255, 255, 0.78);
+        max-width: 640px;
+      }
+      .chips { display: flex; gap: 12px; margin-top: 26px; }
+      .chips span {
+        font-size: 22px;
+        padding: 9px 20px;
+        border-radius: 999px;
+        border: 1px solid rgba(255, 255, 255, 0.22);
+        background: rgba(255, 255, 255, 0.07);
+        color: rgba(255, 255, 255, 0.9);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="bg"></div>
+    <div class="grid"></div>
+    <div class="inner">
+      <div class="badge" aria-hidden="true">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="112" height="112">
+          <path d="M10 4h8.5L23 8.5V28H10z" fill="none" stroke="#ffffff" stroke-width="2.4" stroke-linejoin="round" />
+          <path d="M18 4v5h5" fill="none" stroke="#ffffff" stroke-width="2.4" stroke-linejoin="round" />
+          <path d="M13 16.5h7M13 20.5h4.5" stroke="#ffffff" stroke-width="2.4" stroke-linecap="round" />
+        </svg>
+      </div>
+      <div>
+        <h1 id="og-title">Rumindium<br /><span class="grad">PDF Tools</span></h1>
+        <p id="og-sub">Merge, split, compress, convert, OCR &amp; sign PDFs — free for everyone.</p>
+        <div class="chips" id="og-chips"><span>All tools free</span><span>No install</span><span>My Drive</span></div>
+      </div>
+    <script>
+      // Per-tool variants (`generate-og-images.mjs` screenshots this page with query params):
+      // `?title=Merge+PDF&sub=Combine+…&chips=Free,No+install`. Defaults render the shared cover.
+      (function () {
+        var params = new URLSearchParams(window.location.search);
+        var title = params.get('title');
+        var sub = params.get('sub');
+        var chips = params.get('chips');
+        if (title) {
+          var parts = title.split('|');
+          var h1 = document.getElementById('og-title');
+          h1.textContent = '';
+          parts.forEach(function (part, index) {
+            if (index > 0) h1.appendChild(document.createElement('br'));
+            var span = document.createElement('span');
+            if (index === parts.length - 1) span.className = 'grad';
+            span.textContent = part;
+            h1.appendChild(span);
+          });
+        }
+        if (sub) document.getElementById('og-sub').textContent = sub;
+        if (chips) {
+          var box = document.getElementById('og-chips');
+          box.textContent = '';
+          chips.split(',').forEach(function (chip) {
+            var span = document.createElement('span');
+            span.textContent = chip.trim();
+            box.appendChild(span);
+          });
+        }
+      })();
+    </script>
+    </div>
+  </body>
+</html>

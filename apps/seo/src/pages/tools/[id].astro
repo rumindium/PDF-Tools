@@ -1,0 +1,61 @@
+---
+import { TOOLS } from '@pdftools/contracts/tools';
+import { toolSeo } from '../../../../web/src/lib/seo';
+import Base from '../../layouts/Base.astro';
+import { idToolCopy } from '../../lib/id';
+
+export function getStaticPaths() {
+  return TOOLS.map((tool) => ({ params: { id: tool.id }, props: { tool } }));
+}
+
+// Single-sourced: the snapshot's head tags are the SPA's (`apps/web/src/lib/seo.ts`). Only the canonical comes
+// from `Astro.site` (via `Base`), so a non-production build never ships a production canonical.
+const { tool } = Astro.props;
+const path = `/tools/${tool.id}/`;
+const meta = toolSeo({
+  id: tool.id,
+  title: tool.title,
+  summary: tool.summary,
+  category: tool.category,
+  maxFiles: tool.input.maxFiles,
+  extensions: tool.input.extensions,
+});
+---
+
+<Base
+  title={meta.title}
+  description={meta.description}
+  canonicalPath={path}
+  ogType={meta.ogType}
+  keywords={meta.keywords}
+  ogImage={meta.ogImage}
+  alternates={[
+    { hrefLang: 'en', href: `${meta.canonical}` },
+    // Only the six translated tools name an Indonesian alternate — an hreflang to a page that was never built
+    // is worse than no alternate.
+    ...(idToolCopy(tool.id)
+      ? [{ hrefLang: 'id', href: `${meta.canonical.replace(/\/tools\/[^/]+$/, '')}/id/tools/${tool.id}` }]
+      : []),
+    { hrefLang: 'x-default', href: `${meta.canonical}` },
+  ]}
+  jsonLd={meta.jsonLd}
+>
+
+  <h1>{tool.title}</h1>
+  <p>{tool.summary}</p>
+  <h2>How it works</h2>
+  <ol>
+    <li>Add up to {tool.input.maxFiles} file{tool.input.maxFiles === 1 ? '' : 's'} ({tool.input.extensions.join(', ').toUpperCase()}).</li>
+    <li>Choose the options shown for this tool.</li>
+    <li>Run the job and download the result before its retention window ends.</li>
+  </ol>
+  <h2>Limits</h2>
+  <ul>
+    <li>Max files: {tool.input.maxFiles}</li>
+    <li>Accepts: {tool.input.extensions.join(', ')}</li>
+    <li>Output: {tool.output.mime}{tool.output.archive ? ' (archive)' : ''}</li>
+  </ul>
+  <p>
+    <a href="/tools/">All tools</a>
+  </p>
+</Base>

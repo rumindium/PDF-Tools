@@ -1,0 +1,11 @@
+# Crawler allowlist for dynamic rendering (`default.conf.template`).
+#
+# Rendered into conf.d (http level) because `map` is not allowed inside a
+# server block. Matches only well-known crawler user-agents — everyone else,
+# including scrapers that spoof nothing, gets the SPA. Only `$`-free names
+# appear here so the entrypoint's envsubst (which expands set variables only)
+# leaves this file byte-identical.
+map $http_user_agent $is_crawler {
+    default 0;
+    ~*(googlebot|bingbot|slurp|duckduckbot|baiduspider|yandexbot|sogou|exabot|facebot|facebookexternalhit|twitterbot|linkedinbot|embedly|quora|pinterest|slackbot|whatsapp|telegrambot|discordbot|applebot|semrushbot|ahrefsbot|mj12bot|dotbot|petalbot|bytespider|gptbot|claudebot|perplexitybot) 1;
+}

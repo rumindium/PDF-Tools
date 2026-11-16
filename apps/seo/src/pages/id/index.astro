@@ -1,0 +1,67 @@
+---
+import { TOOLS } from '@pdftools/contracts/tools';
+import { homeSeo } from '../../../../web/src/lib/seo';
+import Base from '../../layouts/Base.astro';
+import { ID_HOME_DESCRIPTION, ID_HOME_KEYWORDS, ID_HOME_TITLE, idToolCopy } from '../../lib/id';
+
+// Indonesian home (`docs/18-SEO-GROWTH-AND-BACKLOG.md` S3): same tool data, translated chrome. The canonical is
+// self (`/id/`), `inLanguage` is `id`, and the alternates name the English twin plus `x-default`.
+const en = homeSeo();
+const canonical = `${en.canonical}id`;
+const picks = ['merge', 'split', 'compress', 'pdf-to-office', 'pdf-to-images', 'ocr']
+  .map((id) => {
+    const tool = TOOLS.find((candidate) => candidate.id === id);
+    if (!tool) return null;
+    return { id: tool.id, title: idToolCopy(tool.id)?.title ?? tool.title, summary: tool.summary };
+  })
+  .filter((tool) => tool != null);
+---
+
+<Base
+  title={`${ID_HOME_TITLE} | Rumindium PDF Tools`}
+  description={ID_HOME_DESCRIPTION}
+  canonicalPath="/id/"
+  keywords={ID_HOME_KEYWORDS}
+  ogImage={en.ogImage}
+  alternates={[
+    { hrefLang: 'id', href: canonical },
+    { hrefLang: 'en', href: `${en.canonical}` },
+    { hrefLang: 'x-default', href: `${en.canonical}` },
+  ]}
+  jsonLd={[
+    { '@context': 'https://schema.org', '@type': 'WebSite', name: 'Rumindium PDF Tools', url: `${canonical}/`, inLanguage: 'id' },
+    { '@context': 'https://schema.org', '@type': 'Organization', name: 'Rumindium', url: `${canonical}/`, logo: `${en.canonical}favicon.svg` },
+    {
+      '@context': 'https://schema.org',
+      '@type': 'WebApplication',
+      name: 'Rumindium PDF Tools',
+      url: `${canonical}/`,
+      applicationCategory: 'UtilitiesApplication',
+      operatingSystem: 'Web',
+      inLanguage: 'id',
+      offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
+    },
+  ]}
+>
+  <h1>Kerjakan PDF dalam sepuluh detik — gratis.</h1>
+  <p>Gabung, pisah, konversi, kompres, tanda tangan, redaksi, OCR — semua tool gratis. Anonim tidak pernah disimpan; masuk dan setiap hasil tersimpan di drive Anda.</p>
+  <p>
+    <a href="/id/tools/">Jelajahi semua tool</a>
+    {picks[0] ? <> · <a href={`/id/tools/${picks[0].id}/`}>Coba {picks[0].title}</a></> : null}
+  </p>
+  <h2>Pilihan utama</h2>
+  <ul>
+    {picks.map((tool) => (
+      <li>
+        <a href={`/id/tools/${tool.id}/`}>{tool.title}</a> — {tool.summary}
+      </li>
+    ))}
+  </ul>
+  <h2>Kenapa tool ini</h2>
+  <ul>
+    <li>Semua tool gratis — tanpa paket, tanpa paywall</li>
+    <li>Anonim tidak pernah disimpan</li>
+    <li>Hasil yang masuk tersimpan di drive Anda</li>
+    <li>Job berjalan terisolasi</li>
+  </ul>
+</Base>

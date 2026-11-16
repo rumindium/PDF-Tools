@@ -1,0 +1,56 @@
+# Caddy front door (docs/0-CICD.md §7): TLS, redirect, security headers, and byte-transparent proxying.
+#
+# Caddy is the only thing exposed to the internet in production. Everything else — the API, Postgres, Redis, the
+# workers — is reachable only on the compose network.
+#
+# The one non-obvious setting is `flush_interval -1` on the jobs path: without it Caddy buffers the response, and a
+# buffered `text/event-stream` turns the live progress bar into a screen that does not move until the job ends
+# (which is the exact failure the SSE replay and the polling fallback exist to survive).
+
+{
+	email {$ACME_EMAIL}
+	# Uncomment to test TLS locally; production uses automatic certificates.
+	# acme_ca https://acme-staging-v02.api.letsencrypt.org/directory
+	servers {
+		# Uploads are streamed to disk by the API, so the proxy must not hold a whole body in memory.
+		timeouts {
+			read_body 0
+		}
+	}
+}
+
+{$PUBLIC_HOST} {
+	encode zstd gzip
+
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options "nosniff"
+		Referrer-Policy "no-referrer"
+		# The app is same-origin and loads no third-party scripts; a strict CSP is affordable here.
+		Content-Security-Policy "default-src 'self'; img-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
+		-Server
+	}
+
+	# Job routes: progress streams through, and the request body is passed through unbuffered.
+	handle /api/v1/jobs/* {
+		reverse_proxy api:8080 {
+			flush_interval -1
+			transport http {
+				read_timeout 1h
+			}
+		}
+	}
+
+	handle /api/* {
+		reverse_proxy api:8080
+	}
+
+	handle /health {
+		reverse_proxy api:8080
+	}
+
+	# Everything else is the SPA, including its own `/api` proxy target (which points at the same API).
+	handle {
+		reverse_proxy web:80
+	}
+}

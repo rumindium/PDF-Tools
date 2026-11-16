@@ -1,0 +1,140 @@
+# nginx site config for pdftools/web.
+#
+# `API_UPSTREAM` is substituted by the nginx entrypoint (envsubst) from `docker-compose.yml` / the deploy manifest,
+# so the same image works with a service name in compose and a real hostname in production.
+
+server {
+    listen 80;
+    server_name _;
+
+    root /usr/share/nginx/html;
+    index index.html;
+
+    # Uploads are streamed straight through to the API; a 1 GB Business upload must not be buffered by the proxy.
+    client_max_body_size 0;
+    proxy_request_buffering off;
+    proxy_buffering off;
+
+    # Static assets: content-hashed by Vite, so they can be cached hard. `index.html` never is.
+    location /assets/ {
+        expires 1y;
+        add_header Cache-Control "public, immutable";
+        try_files $uri =404;
+    }
+
+    # `.mjs` — the module MIME type, stated explicitly.
+    #
+    # A module script is rejected outright when its MIME type is not JavaScript (`Failed to load module script: …
+    # non-JavaScript MIME type`), and nginx's stock `mime.types` has no entry for `.mjs`, so it falls through to
+    # `application/octet-stream`. That is not a hypothetical: pdf.js loads its renderer as a module worker, and with
+    # the wrong type every page preview in the tool board drew a placeholder instead of a page. The `types` block is
+    # local to this location, so it adds the one mapping without disturbing the inherited table for anything else.
+    # A regex location takes precedence over the `/assets/` prefix above, so this also caches like an asset.
+    location ~* \.mjs$ {
+        types {
+            text/javascript mjs;
+        }
+        default_type text/javascript;
+        expires 1y;
+        add_header Cache-Control "public, immutable";
+        try_files $uri =404;
+    }
+
+    location = /index.html {
+        add_header Cache-Control "no-store";
+    }
+
+    # SEO statics: long cache for the crawler, instant refresh on redeploy via new image.
+    location = /sitemap.xml {
+        expires 1h;
+        add_header Cache-Control "public";
+        try_files $uri =404;
+    }
+
+    location = /robots.txt {
+        expires 1h;
+        add_header Cache-Control "public";
+        try_files $uri =404;
+    }
+
+    # SSE progress: buffering here would turn a live progress bar into a frozen screen.
+    location /api/v1/jobs {
+        proxy_pass http://${API_UPSTREAM};
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header Connection '';
+        proxy_read_timeout 3600s;
+        proxy_send_timeout 3600s;
+        chunked_transfer_encoding off;
+    }
+
+    # Never index API payloads even if a crawler finds them.
+    location /api/ {
+        add_header X-Robots-Tag "noindex, nofollow" always;
+        proxy_pass http://${API_UPSTREAM};
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    location /health {
+        proxy_pass http://${API_UPSTREAM};
+        access_log off;
+    }
+
+    # The static snapshot: same URLs and same content as the SPA, pre-rendered
+    # for crawlers. Never linked anywhere; the noindex below is belt-and-suspenders
+    # for a path a crawler guesses directly (its own canonicals point at `/`).
+    location /snapshot/ {
+        expires 1h;
+        add_header Cache-Control "public";
+        add_header X-Robots-Tag "noindex, nofollow" always;
+    }
+
+    # Dynamic rendering: known crawlers read the snapshot, everyone else runs
+    # the SPA. `break` keeps the request in this location, so the snapshot file
+    # below is served from `root` without a second location pass.
+    location = / {
+        if ($is_crawler = 1) {
+            rewrite ^ /snapshot/index.html break;
+        }
+        try_files $uri $uri/ /index.html;
+    }
+
+    location = /tools {
+        if ($is_crawler = 1) {
+            rewrite ^ /snapshot/tools/index.html break;
+        }
+        try_files $uri $uri/ /index.html;
+    }
+
+    location ~ ^/tools/(?<toolid>[^/]+)/?$ {
+        if ($is_crawler = 1) {
+            rewrite ^ /snapshot/tools/$toolid/index.html break;
+        }
+        try_files $uri $uri/ /index.html;
+    }
+
+    # Indonesian snapshot pages: static and indexable, served to everyone. Crawlers and people get the same file —
+    # the SPA has no /id routes, so falling through to index.html would serve English content on an Indonesian URL.
+    location = /id {
+        return 301 /id/;
+    }
+
+    location ^~ /id/ {
+        root /usr/share/nginx/snapshot;
+        expires 1h;
+        add_header Cache-Control "public";
+        try_files $uri $uri/ =404;
+    }
+
+    # SPA fallback: every unknown path is a client route.
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+}

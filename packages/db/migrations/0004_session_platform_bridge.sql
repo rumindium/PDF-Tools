@@ -1,0 +1,16 @@
+-- 0004_session_platform_bridge.sql — remember the shared-session handle this link came from.
+--
+-- Why the handle is worth keeping: it is the only way to ask the platform a question *about this browser's session*
+-- once the cookie that carried it is gone. `auth_session` is deleted by whoever signs out — the platform's own
+-- sign-out, a sibling app, the user's browser settings — and a deleted cookie is indistinguishable from one that
+-- merely lapsed (an hour in a browser that wandered off). Both used to mean the same thing here: keep the link, since
+-- a session nobody ended should not be thrown away.
+--
+-- With the handle kept at link time, the two stop being the same question. `POST /sso/bridge/verify` answers three
+-- ways — usable, **revoked**, or simply gone — and only the middle one is a sign-out: a session that was ended by
+-- pressing the button now ends *here* on the next request rather than at the end of some refresh window, and a lapsed
+-- hour still keeps the link exactly as it does today.
+--
+-- It is a credential, and it is stored the way the platform's own siblings store theirs: server-side, for the life of
+-- the link, never in a response and never in a log line. Signing out clears it (`plugins/session.ts`).
+ALTER TABLE sessions ADD COLUMN IF NOT EXISTS platform_bridge text;

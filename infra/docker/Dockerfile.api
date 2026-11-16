@@ -1,0 +1,72 @@
+# syntax=docker/dockerfile:1.7
+#
+# pdftools/api — HTTP only (docs/0-CICD.md §4).
+#
+# This image deliberately contains **no conversion engines**: the API must never run a conversion
+# (`docs/0-FOLDER-STRUCTURE.md` §6 forbids importing `packages/engines` from `apps/api`), and an image without
+# engines is the cheapest possible enforcement of that rule. If a future change tries to spawn qpdf from a route
+# handler, it fails in staging instead of silently working on a developer's laptop.
+#
+# Two stages so the runtime layer carries the installed dependency tree and nothing else.
+
+FROM oven/bun:1-debian AS builder
+WORKDIR /app
+
+# Manifests first: a source-only change then reuses the install layer.
+COPY package.json bun.lock ./
+COPY packages/config/package.json packages/config/
+COPY packages/contracts/package.json packages/contracts/
+COPY packages/db/package.json packages/db/
+COPY packages/engines/package.json packages/engines/
+COPY packages/errors/package.json packages/errors/
+COPY packages/logger/package.json packages/logger/
+COPY packages/queue/package.json packages/queue/
+COPY apps/api/package.json apps/api/
+COPY apps/web/package.json apps/web/
+COPY workers/shared/package.json workers/shared/
+COPY workers/light/package.json workers/light/
+COPY workers/office/package.json workers/office/
+COPY workers/heavy/package.json workers/heavy/
+COPY workers/ocr/package.json workers/ocr/
+RUN bun install --frozen-lockfile --production
+
+COPY package.json tsconfig.base.json tsconfig.json ./
+COPY packages ./packages
+COPY apps/api ./apps/api
+# The operational scripts, because they are the deploy path's own steps and nothing but this image runs them: the
+# `migrate` one-shot (`scripts/ops/migrate.ts`) and `preflight` (`scripts/ops/preflight.ts`) are compose services built
+# from *this* image, and until this line existed `docker compose -f docker-compose.prod.yml run --rm migrate` died with
+# `Module not found "scripts/ops/migrate.ts"` — a documented deploy step that could not run at all. It also puts the
+# incident tools where an operator can reach them in this topology, which publishes no database port: `preflight`,
+# `sweeper` and `engines:check` are run through `docker compose exec api …` because they are the only way to ask the
+# deployment a question from inside it (`docs/0-CICD.md` §11). The image stays engine-free — except `engines:check`,
+# which is *about* what is missing and says so instead of failing.
+#
+# `scripts/ops/smoke.ts` is the one file here that is built for the **host**: it reads `e2e/lib/pdf-inspect` and
+# `scripts/dev/pdf-writer`, and it asserts what a client sees through the public origin — the vantage point that also
+# covers Caddy's vhost and the web root. It is copied because it shares a directory with the rest, not because it runs
+# in here.
+COPY scripts ./scripts
+
+FROM oven/bun:1-debian AS runtime
+ENV NODE_ENV=production \
+    LOG_PRETTY=false \
+    API_HOST=0.0.0.0 \
+    API_PORT=8080 \
+    TEMP_DIR=/var/lib/pdf-tools/jobs \
+    STAGING_DIR=/var/lib/pdf-tools/staging
+
+WORKDIR /app
+COPY --from=builder /app /app
+
+# The job tree is created *and owned* here so a named volume mounted over it inherits the right owner; a volume
+# that root owns is a permission error on the first upload, not on the first boot.
+RUN mkdir -p /var/lib/pdf-tools/jobs /var/lib/pdf-tools/staging \
+    && chown -R 10001:10001 /var/lib/pdf-tools
+
+USER 10001:10001
+EXPOSE 8080
+
+# Migrations run inside `server.ts` before the listener starts, so there is no separate migrate step to forget.
+# The healthcheck lives in compose, where the port and path are already known.
+CMD ["bun", "run", "apps/api/src/server.ts"]

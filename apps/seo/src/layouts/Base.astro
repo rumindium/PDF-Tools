@@ -1,0 +1,108 @@
+---
+/**
+ * Crawler-first HTML shell: full head tags at build time (title,
+ * description, canonical, OG/Twitter, robots, JSON-LD), semantic
+ * landmarks, skip link, and no client JS by default.
+ */
+interface Props {
+  title: string;
+  description: string;
+  canonicalPath: string;
+  robots?: string;
+  ogType?: 'website' | 'article';
+  keywords?: string;
+  ogImage?: string;
+  /** Language alternates: every language that exists for this page, plus `x-default`. EN-only pages pass two. */
+  alternates?: Array<{ hrefLang: string; href: string }>;
+  jsonLd?: Record<string, unknown>[];
+}
+
+const {
+  title,
+  description,
+  canonicalPath,
+  robots = 'index, follow, max-image-preview:large',
+  ogType = 'website',
+  keywords,
+  ogImage: ogImageProp,
+  alternates = [],
+  jsonLd = [],
+} = Astro.props;
+
+const site = Astro.site?.toString().replace(/\/$/, '') ?? 'https://pdf.rumindium.id';
+const canonical = `${site}${canonicalPath === '/' ? '/' : canonicalPath.replace(/\/$/, '')}`;
+// The SPA's builder (`lib/seo.ts`) picks the image — per-tool cover or shared fallback. The prop arrives as an
+// absolute URL pinned to `SITE_URL`, which equals the production `Astro.site`, so it is used verbatim.
+const ogImage = ogImageProp ?? `${site}/og-cover.png`;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    {keywords ? <meta name="keywords" content={keywords} /> : null}
+    <meta name="author" content="Rumindium" />
+    <link rel="canonical" href={canonical} />
+    {alternates.map((alternate) => (
+      <link rel="alternate" hreflang={alternate.hrefLang} href={alternate.href} />
+    ))}
+    <meta name="robots" content={robots} />
+    <meta name="theme-color" media="(prefers-color-scheme: light)" content="#f8f9fc" />
+    <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#0f1117" />
+    <meta property="og:type" content={ogType} />
+    <meta property="og:site_name" content="Rumindium PDF Tools" />
+    <meta property="og:locale" content="en_US" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="Rumindium PDF Tools — free online PDF tools in the browser" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImage} />
+    <meta name="twitter:image:alt" content="Rumindium PDF Tools — free online PDF tools in the browser" />
+    {jsonLd.map((block) => (
+      <script type="application/ld+json" set:html={JSON.stringify(block)} />
+    ))}
+  </head>
+  <body>
+    <a href="#main" class="skip-link">Skip to content</a>
+    <header>
+      <nav aria-label="Primary">
+        <a href="/">Rumindium PDF Tools</a>
+        <a href="/tools/">All tools</a>
+      </nav>
+    </header>
+    <main id="main">
+      <slot />
+    </main>
+    <footer>
+      <p>
+        Files delete themselves after each job. No document library.
+        <a href="/tools/">Browse tools</a> ·
+        <span>Free for everyone</span>
+      </p>
+    </footer>
+    <style>
+      .skip-link {
+        position: absolute;
+        left: -9999px;
+        top: 0;
+        background: #fff;
+        padding: 8px 12px;
+        z-index: 100;
+      }
+      .skip-link:focus { left: 8px; top: 8px; }
+      header nav { display: flex; gap: 16px; padding: 16px 24px; }
+      main { max-width: 880px; margin: 0 auto; padding: 24px; }
+      footer { border-top: 1px solid #e5e7eb; margin-top: 48px; padding: 24px; }
+    </style>
+  </body>
+</html>

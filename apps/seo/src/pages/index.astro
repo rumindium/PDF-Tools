@@ -1,0 +1,49 @@
+---
+import { TOOLS } from '@pdftools/contracts/tools';
+import { homeSeo } from '../../../web/src/lib/seo';
+import Base from '../layouts/Base.astro';
+
+// Single-sourced: the snapshot's head tags are the SPA's (`apps/web/src/lib/seo.ts`). Only the canonical comes
+// from `Astro.site` (via `Base`), so a non-production build never ships a production canonical.
+const meta = homeSeo();
+const picks = ['merge', 'split', 'compress', 'office-to-pdf', 'pdf-to-images', 'ocr']
+  .map((id) => TOOLS.find((tool) => tool.id === id))
+  .filter((tool) => tool != null);
+---
+
+<Base
+  title={meta.title}
+  description={meta.description}
+  canonicalPath="/"
+  ogType={meta.ogType}
+  keywords={meta.keywords}
+  ogImage={meta.ogImage}
+  alternates={[
+    { hrefLang: 'en', href: `${meta.canonical}` },
+    { hrefLang: 'id', href: `${meta.canonical}id/` },
+    { hrefLang: 'x-default', href: `${meta.canonical}` },
+  ]}
+  jsonLd={meta.jsonLd}
+>
+  <h1>Do something with a PDF in about ten seconds — free.</h1>
+  <p>Merge, split, convert, compress, sign, redact, OCR — every tool is free. Anonymous runs are never stored; sign in and every result is kept in your drive.</p>
+  <p>
+    <a href="/tools/">Explore all tools</a>
+    {picks[0] ? <> · <a href={`/tools/${picks[0].id}/`}>Try {picks[0].title}</a></> : null}
+  </p>
+  <h2>Top picks</h2>
+  <ul>
+    {picks.map((tool) => (
+      <li>
+        <a href={`/tools/${tool.id}/`}>{tool.title}</a> — {tool.summary}
+      </li>
+    ))}
+  </ul>
+  <h2>Why this toolbox</h2>
+  <ul>
+    <li>Every tool is free — no plans, no paywall</li>
+    <li>Anonymous runs are never stored</li>
+    <li>Signed-in results are kept in your drive</li>
+    <li>Jobs run isolated</li>
+  </ul>
+</Base>

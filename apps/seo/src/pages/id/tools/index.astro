@@ -1,0 +1,77 @@
+---
+import { TOOLS } from '@pdftools/contracts/tools';
+import { toolsIndexSeo } from '../../../../../web/src/lib/seo';
+import Base from '../../../layouts/Base.astro';
+import { ID_TOOLS_DESCRIPTION, ID_TOOLS_KEYWORDS, ID_TOOLS_TITLE, idCategoryLabel, idToolCopy } from '../../../lib/id';
+
+// Indonesian tools index: the full catalog (tool names stay as shipped — only the six translated tools have
+// Indonesian titles), grouped by translated category. Self-canonical `/id/tools`, alternates name English + default.
+const en = toolsIndexSeo(TOOLS.length, []);
+const origin = en.canonical.replace(/\/tools$/, '');
+const canonical = `${origin}/id/tools`;
+const withTitles = TOOLS.map((tool) => ({
+  tool,
+  title: idToolCopy(tool.id)?.title ?? tool.title,
+}));
+const byCategory = new Map<string, typeof withTitles>();
+for (const entry of withTitles) {
+  const list = byCategory.get(entry.tool.category) ?? [];
+  list.push(entry);
+  byCategory.set(entry.tool.category, list);
+}
+---
+
+<Base
+  title={`${ID_TOOLS_TITLE} | Rumindium PDF Tools`}
+  description={ID_TOOLS_DESCRIPTION}
+  canonicalPath="/id/tools/"
+  keywords={ID_TOOLS_KEYWORDS}
+  ogImage={en.ogImage}
+  alternates={[
+    { hrefLang: 'id', href: canonical },
+    { hrefLang: 'en', href: `${en.canonical}` },
+    { hrefLang: 'x-default', href: `${en.canonical}` },
+  ]}
+  jsonLd={[
+    {
+      '@context': 'https://schema.org',
+      '@type': 'CollectionPage',
+      name: 'Semua tool PDF gratis',
+      url: canonical,
+      inLanguage: 'id',
+      description: ID_TOOLS_DESCRIPTION,
+    },
+    {
+      '@context': 'https://schema.org',
+      '@type': 'ItemList',
+      name: 'Tool PDF gratis',
+      itemListElement: withTitles.map((entry, index) => ({
+        '@type': 'ListItem',
+        position: index + 1,
+        name: entry.title,
+        description: entry.tool.summary,
+        url: idToolCopy(entry.tool.id) ? `${origin}/id/tools/${entry.tool.id}` : `${origin}/tools/${entry.tool.id}`,
+      })),
+    },
+  ]}
+>
+  <h1>Semua tool</h1>
+  <p>Semua yang API sediakan. Ketersediaan, batas ukuran, dan batas halaman berasal dari paket Anda dan diterapkan di server.</p>
+  {[...byCategory].map(([category, tools]) => (
+    <section>
+      <h2>{idCategoryLabel(category)}</h2>
+      <ul>
+        {tools.map((entry) => (
+          <li>
+            {idToolCopy(entry.tool.id) ? (
+              <a href={`/id/tools/${entry.tool.id}/`}>{entry.title}</a>
+            ) : (
+              <a href={`/tools/${entry.tool.id}/`}>{entry.title}</a>
+            )}
+            {' '}— {entry.tool.summary}
+          </li>
+        ))}
+      </ul>
+    </section>
+  ))}
+</Base>

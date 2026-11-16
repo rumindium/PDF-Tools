@@ -1,0 +1,49 @@
+# Dependencies
+node_modules/
+.bun/
+
+# Build output
+dist/
+build/
+*.tsbuildinfo
+
+# Environment — the only file that carries secrets
+.env
+.env.local
+.env.*.local
+
+# Job storage (never committed; there is nothing worth restoring in it)
+storage/
+.jobs/
+*.tmp
+
+# Generated fixtures — reproducible from scripts/dev/make-fixtures.ts
+fixtures/generated/
+
+# Generated sitemap — reproducible from `bun run seo:sitemap` (runs on every web build).
+# Versioning it is how a stale `pdf.example.id` sitemap shipped.
+apps/web/public/sitemap.xml
+
+# E2E artefacts
+e2e/artifacts/
+# Playwright's own output: traces, screenshots and videos for failed browser cases, plus its report. Ignored here
+# rather than only in biome.json, because `biome check .` honours .gitignore (vcs.useIgnoreFile) and formats what it
+# finds — so a run that leaves `.last-run.json` behind fails lint on the *tool's* bookkeeping, not on a source file.
+test-results/
+playwright-report/
+
+# Editor and OS noise
+.DS_Store
+.idea/
+.vscode/*
+!.vscode/extensions.json
+*.log
+
+# Freebuff client workspace metadata (project id)
+.freebuff/
+
+# Astro content-collection cache, rebuilt on every dev/build run.
+apps/seo/.astro/
+
+# Local conversation attachments
+.cloud-attachments/

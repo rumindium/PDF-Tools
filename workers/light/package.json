@@ -1,0 +1,20 @@
+{
+  "name": "@pdftools/worker-light",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "WORKER_POOL=light bun run --hot src/index.ts",
+    "start": "WORKER_POOL=light bun run src/index.ts"
+  },
+  "dependencies": {
+    "@pdftools/config": "workspace:*",
+    "@pdftools/contracts": "workspace:*",
+    "@pdftools/db": "workspace:*",
+    "@pdftools/engines": "workspace:*",
+    "@pdftools/errors": "workspace:*",
+    "@pdftools/logger": "workspace:*",
+    "@pdftools/queue": "workspace:*",
+    "@pdftools/worker-shared": "workspace:*"
+  }
+}

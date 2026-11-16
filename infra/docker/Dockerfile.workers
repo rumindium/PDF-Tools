@@ -1,0 +1,297 @@
+# syntax=docker/dockerfile:1.7
+#
+# The four worker images (docs/0-CICD.md §4, docs/0-WORKERS.md).
+#
+# One Dockerfile with five targets rather than four files, because the pools share almost everything and the
+# differences are exactly one `apt-get install` line each. Splitting them into four files would mean four copies of
+# the same install logic, and the copies would drift — which is how "works in the light image, missing font in the
+# office image" happens.
+#
+#   docker build -f infra/docker/Dockerfile.workers --target light ...   # qpdf, mutool, poppler, ImageMagick, gs
+#   docker build -f infra/docker/Dockerfile.workers --target office ...  # LibreOffice + fonts
+#   docker build -f infra/docker/Dockerfile.workers --target heavy ...   # ghostscript, PDF/A, exports
+#   docker build -f infra/docker/Dockerfile.workers --target ocr ...     # tesseract + ocrmypdf
+#
+# Every stage ends as UID 10001 and shares the job volume with the API.
+
+ARG BUN_IMAGE=oven/bun:1-debian
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Shared base: the workspace dependency tree, plus python for the pikepdf bridge.
+# ─────────────────────────────────────────────────────────────────────────────
+FROM ${BUN_IMAGE} AS deps
+WORKDIR /app
+COPY package.json bun.lock ./
+COPY packages/config/package.json packages/config/
+COPY packages/contracts/package.json packages/contracts/
+COPY packages/db/package.json packages/db/
+COPY packages/engines/package.json packages/engines/
+COPY packages/errors/package.json packages/errors/
+COPY packages/logger/package.json packages/logger/
+COPY packages/queue/package.json packages/queue/
+COPY apps/api/package.json apps/api/
+COPY apps/web/package.json apps/web/
+COPY workers/shared/package.json workers/shared/
+COPY workers/light/package.json workers/light/
+COPY workers/office/package.json workers/office/
+COPY workers/heavy/package.json workers/heavy/
+COPY workers/ocr/package.json workers/ocr/
+RUN bun install --frozen-lockfile --production
+
+COPY package.json tsconfig.base.json tsconfig.json ./
+COPY packages ./packages
+COPY workers ./workers
+
+FROM ${BUN_IMAGE} AS base
+ENV NODE_ENV=production \
+    LOG_PRETTY=false \
+    TEMP_DIR=/var/lib/pdf-tools/jobs \
+    STAGING_DIR=/var/lib/pdf-tools/staging \
+    PYTHONUNBUFFERED=1
+
+# `--no-install-recommends` plus removing the apt lists is the difference between a 1.9 GB image and a 900 MB one.
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends python3 python3-pip python3-venv \
+    && python3 -m pip install --no-cache-dir --break-system-packages pikepdf \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY --from=deps /app /app
+WORKDIR /app
+RUN mkdir -p /var/lib/pdf-tools/jobs /var/lib/pdf-tools/staging \
+    && chown -R 10001:10001 /var/lib/pdf-tools /app
+
+# ─────────────────────────────────────────────────────────────────────────────
+# light — cheap, deterministic, structural work. Every tool in the `pdf:light` queue must run here.
+# ─────────────────────────────────────────────────────────────────────────────
+FROM base AS light
+USER root
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+        qpdf \
+        mupdf-tools \
+        poppler-utils \
+        ghostscript \
+        imagemagick \
+        zip unzip \
+        libheif-examples \
+        fonts-dejavu-core \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+# ImageMagick 7 (Debian 13, and everything newer) installs one binary, `magick`, and the handlers call exactly
+# that. ImageMagick 6 (Debian 12) has no `magick` at all — it has `convert`/`identify` — so on a 6 generation base
+# the shim below translates at the process boundary. One dialect in the code, whichever generation is installed.
+RUN if ! command -v magick >/dev/null 2>&1; then \
+      printf '%s\n' \
+        '#!/bin/sh' \
+        '# ImageMagick 6 compatibility shim — see infra/docker/Dockerfile.workers.' \
+        'sub="$1"; shift' \
+        'case "$sub" in' \
+        '  identify) exec /usr/bin/identify "$@" ;;' \
+        '  mogrify)  exec /usr/bin/mogrify "$@" ;;' \
+        '  *)        exec /usr/bin/convert "$@" ;;' \
+        'esac' > /usr/local/bin/magick; \
+      chmod 0755 /usr/local/bin/magick; \
+    fi
+
+# ImageMagick disables the PDF coder by default (a Ghostscript CVE mitigation from 2018). This build needs PDF
+# **write** to place one image per page, and it never hands an untrusted PDF to ImageMagick: uploads are typed from
+# their magic bytes first, and every PDF read goes through qpdf or mutool. Read and write are both granted, because
+# `identify` on a PDF is harmless and a surprising failure later is not.
+#
+# The policy path differs by generation (`/etc/ImageMagick-7`, then `-6`), so it is discovered rather than assumed.
+# The edit is deterministic on purpose — every `pattern="PDF"` line is dropped and exactly one permissive rule is
+# inserted before the map closes. No `|| true`: if the policy file or its structure is not what this assumes, the
+# image must fail to build rather than start and fail at the first image-to-PDF job.
+RUN set -eux; \
+    policy=$(ls /etc/ImageMagick-7/policy.xml /etc/ImageMagick-6/policy.xml 2>/dev/null | head -n1); \
+    test -n "$policy"; \
+    test -f "$policy"; \
+    grep -q '</policymap>' "$policy"; \
+    grep -v 'pattern="PDF"' "$policy" > "$policy.new"; \
+    sed -i 's#</policymap>#  <policy domain="coder" rights="read|write" pattern="PDF" />\n</policymap>#' "$policy.new"; \
+    mv "$policy.new" "$policy"; \
+    grep -c 'pattern="PDF"' "$policy"
+USER 10001:10001
+
+# A pool image with no CMD inherits `bun` from the base image, which prints its help and exits 0 — a container that
+# looks healthy and converts nothing. Each stage names its own entrypoint, and sets WORKER_POOL too, so a plain
+# `docker run` of a pool image does the right thing without compose's help.
+ENV WORKER_POOL=light
+CMD ["bun", "run", "workers/light/src/index.ts"]
+
+# ─────────────────────────────────────────────────────────────────────────────
+# office — LibreOffice headless. Largest image; no ImageMagick (a conversion here never touches pixels directly).
+# ─────────────────────────────────────────────────────────────────────────────
+FROM base AS office
+USER root
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+        libreoffice-writer \
+        libreoffice-calc \
+        libreoffice-impress \
+        libreoffice-core \
+        fonts-dejavu-core \
+        fonts-liberation \
+        fonts-crosextra-carlito \
+        fonts-crosextra-caladea \
+        qpdf \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+USER 10001:10001
+# LibreOffice writes a user profile; HOME is set per job inside the worker runtime, but the parent must exist.
+ENV HOME=/var/lib/pdf-tools
+ENV WORKER_POOL=office
+CMD ["bun", "run", "workers/office/src/index.ts"]
+
+# ─────────────────────────────────────────────────────────────────────────────
+# heavy — long-running, high-CPU work: compression of large documents, PDF/A, exports, signing.
+#
+# veraPDF **is** baked in, and the reason it used to not be was wrong: the exclusion was justified by "~200 MB of Java",
+# which is the GUI distribution's size. Measured: the CLI-only pack installs to 18 MB, and the JRE this stage already
+# needs for other reasons is the only other requirement. `PDFA_VALIDATE=true` is therefore the ordinary configuration
+# rather than an aspiration, and `verifyPdfa()` can answer with a validator instead of a disclaimer.
+#
+# The download URL is mutable — `/releases/verapdf-installer.zip` means "latest" on the vendor's site — so the digest
+# is pinned and the build fails when the artifact changes under it: upgrading is a deliberate two-line edit, and a
+# build that silently shipped a different validator than the one the docs name is exactly what a digest prevents.
+# ─────────────────────────────────────────────────────────────────────────────
+FROM base AS heavy
+USER root
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+        ghostscript \
+        qpdf \
+        mupdf-tools \
+        poppler-utils \
+        imagemagick \
+        zip \
+        default-jre-headless \
+        fonts-dejavu-core \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+# Camelot is the table extractor `pdf-to-csv` is specified around (`docs/08-PDF-TO-OFFICE-AND-TEXT.md` §4): its
+# lattice detection is the best free option for ruled forms and its `stream` flavour covers whitespace-aligned ones.
+# Unpinned like ocrmypdf, and the `[cv]` extra is what brings opencv-headless — which is also why this belongs in the
+# heavy image and not in `light`: it is ~300 MB of wheels for a tool only exports need.
+RUN python3 -m pip install --no-cache-dir --break-system-packages camelot-py[cv]
+# The reconstruction stack for `pdf-to-office`: pdf2docx (layout + real Word tables, on PyMuPDF), python-docx and
+# python-pptx (the writers, and the fallback paragraph builder), and openpyxl (which arrived with Camelot, and is what
+# the `xlsx` target actually writes with). PyMuPDF is also the renderer the `pptx` target uses for its page images, so
+# this one line covers all three branches of the tool.
+RUN python3 -m pip install --no-cache-dir --break-system-packages python-pptx pdf2docx
+
+# Same shim and the same PDF policy as the light stage: an escalated light tool runs here, so a difference
+# between the two images is exactly the kind of "worked in light, failed in heavy" surprise this file exists to
+# prevent.
+RUN if ! command -v magick >/dev/null 2>&1; then \
+      printf '%s\n' \
+        '#!/bin/sh' \
+        '# ImageMagick 6 compatibility shim — see infra/docker/Dockerfile.workers.' \
+        'sub="$1"; shift' \
+        'case "$sub" in' \
+        '  identify) exec /usr/bin/identify "$@" ;;' \
+        '  mogrify)  exec /usr/bin/mogrify "$@" ;;' \
+        '  *)        exec /usr/bin/convert "$@" ;;' \
+        'esac' > /usr/local/bin/magick; \
+      chmod 0755 /usr/local/bin/magick; \
+    fi
+RUN set -eux; \
+    policy=$(ls /etc/ImageMagick-7/policy.xml /etc/ImageMagick-6/policy.xml 2>/dev/null | head -n1); \
+    test -n "$policy"; \
+    test -f "$policy"; \
+    grep -q '</policymap>' "$policy"; \
+    grep -v 'pattern="PDF"' "$policy" > "$policy.new"; \
+    sed -i 's#</policymap>#  <policy domain="coder" rights="read|write" pattern="PDF" />\n</policymap>#' "$policy.new"; \
+    mv "$policy.new" "$policy"; \
+    grep -c 'pattern="PDF"' "$policy"
+USER root
+# veraPDF: the only thing in this image that can say "this file is PDF/A" without taking our own word for it.
+#
+# The installer is a Swing application, so it is driven by its own unattended format (`auto-install.xml`) with only the
+# CLI pack selected — the GUI would add ~180 MB for a window nothing in this image can open. `curl`/`unzip` exist only
+# for this step and are removed in the same layer, so the runtime surface is what it was.
+ARG VERAPDF_SHA256=6cc6341cb1af644044054b81f00a6590a7918abb18f762243de115258bcad838
+RUN set -eux; \
+    apt-get update; \
+    apt-get install -y --no-install-recommends curl unzip; \
+    curl -fsSL -o /tmp/verapdf-installer.zip https://software.verapdf.org/releases/verapdf-installer.zip; \
+    echo "${VERAPDF_SHA256}  /tmp/verapdf-installer.zip" | sha256sum -c -; \
+    printf '%s\n' \
+      '<AutomatedInstallation langpack="eng">' \
+      '<com.izforge.izpack.panels.htmlhello.HTMLHelloPanel id="welcome"/>' \
+      '<com.izforge.izpack.panels.target.TargetPanel id="install_dir">' \
+      '<installpath>/opt/verapdf</installpath>' \
+      '</com.izforge.izpack.panels.target.TargetPanel>' \
+      '<com.izforge.izpack.panels.packs.PacksPanel id="sdk_pack_select">' \
+      '<pack index="0" name="veraPDF GUI" selected="false"/>' \
+      '<pack index="1" name="veraPDF CLI" selected="true"/>' \
+      '</com.izforge.izpack.panels.packs.PacksPanel>' \
+      '<com.izforge.izpack.panels.install.InstallPanel id="install"/>' \
+      '<com.izforge.izpack.panels.finish.FinishPanel id="finish"/>' \
+      '</AutomatedInstallation>' \
+      > /tmp/verapdf-auto-install.xml; \
+    unzip -q /tmp/verapdf-installer.zip -d /tmp/verapdf-installer; \
+    /tmp/verapdf-installer/verapdf-greenfield-*/verapdf-install /tmp/verapdf-auto-install.xml; \
+    /opt/verapdf/verapdf --version; \
+    rm -rf /tmp/verapdf-installer /tmp/verapdf-installer.zip /tmp/verapdf-auto-install.xml; \
+    apt-get remove -y curl unzip; \
+    apt-get clean; \
+    rm -rf /var/lib/apt/lists/*
+ENV ENGINE_VERAPDF_PATH=/opt/verapdf/verapdf
+# Both default in this stage; compose sets them explicitly for every pool, which is where the shared env lives.
+ENV PDFA_VALIDATE=true
+USER 10001:10001
+ENV WORKER_POOL=heavy
+CMD ["bun", "run", "workers/heavy/src/index.ts"]
+
+# ─────────────────────────────────────────────────────────────────────────────
+# ocr — recognition, with the language packs the handler advertises.
+#
+# The language list here and `AVAILABLE_LANGUAGES` in `workers/ocr/src/handlers/ocr.ts` are the same set on
+# purpose: the handler rejects a language the image cannot load, so shipping a smaller set than it advertises is
+# the failure mode this list exists to prevent (docs/0-CICD.md §10 step 6).
+#
+# `zip` is here for the same class of reason, and it was missing until a case ran: `outputMode: 'pdf-and-text'` and
+# `sidecar: true` hand back **two** parts, and `packArchive` in the worker runtime packs those into `parts.zip` — so
+# every multi-part OCR job ended as `ENGINE_UNAVAILABLE: Could not run zip.` The light and heavy images had `zip`
+# because their tools have always returned several parts; this pool's text modes were dead for a different reason
+# (defect 171) and so nothing had ever asked it to pack anything.
+# ─────────────────────────────────────────────────────────────────────────────
+FROM base AS ocr
+USER root
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+        tesseract-ocr \
+        tesseract-ocr-eng \
+        tesseract-ocr-ind \
+        tesseract-ocr-deu \
+        tesseract-ocr-fra \
+        tesseract-ocr-spa \
+        tesseract-ocr-ita \
+        tesseract-ocr-por \
+        tesseract-ocr-nld \
+        tesseract-ocr-jpn \
+        tesseract-ocr-kor \
+        tesseract-ocr-chi-sim \
+        tesseract-ocr-chi-tra \
+        tesseract-ocr-ara \
+        tesseract-ocr-rus \
+        tesseract-ocr-hin \
+        tesseract-ocr-tha \
+        tesseract-ocr-vie \
+        tesseract-ocr-msa \
+        tesseract-ocr-osd \
+        ghostscript \
+        qpdf \
+        poppler-utils \
+        pngquant \
+        unpaper \
+        zip \
+    && python3 -m pip install --no-cache-dir --break-system-packages ocrmypdf \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+USER 10001:10001
+ENV WORKER_POOL=ocr
+CMD ["bun", "run", "workers/ocr/src/index.ts"]

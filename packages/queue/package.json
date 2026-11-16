@@ -1,0 +1,18 @@
+{
+  "name": "@pdftools/queue",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@pdftools/config": "workspace:*",
+    "@pdftools/contracts": "workspace:*",
+    "@pdftools/db": "workspace:*",
+    "bullmq": "^5.34.0",
+    "drizzle-orm": "^0.36.4",
+    "ioredis": "^5.4.2"
+  }
+}

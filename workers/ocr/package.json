@@ -1,0 +1,20 @@
+{
+  "name": "@pdftools/worker-ocr",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "WORKER_POOL=ocr bun run --hot src/index.ts",
+    "start": "WORKER_POOL=ocr bun run src/index.ts"
+  },
+  "dependencies": {
+    "@pdftools/config": "workspace:*",
+    "@pdftools/contracts": "workspace:*",
+    "@pdftools/db": "workspace:*",
+    "@pdftools/engines": "workspace:*",
+    "@pdftools/errors": "workspace:*",
+    "@pdftools/logger": "workspace:*",
+    "@pdftools/queue": "workspace:*",
+    "@pdftools/worker-shared": "workspace:*"
+  }
+}

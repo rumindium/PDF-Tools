@@ -1,0 +1,53 @@
+# syntax=docker/dockerfile:1.7
+#
+# pdftools/web — the Vite bundle served by nginx, which also proxies `/api` and `/health` to the API.
+#
+# nginx rather than a Node server because the app is a static SPA: a second runtime would add memory and a
+# restart loop for no behaviour. The proxy is the important part — serving `/api` from the same origin is what
+# makes the session cookie first-party, and it is why the browser bundle never needs to know the API's address
+# (docs/0-CONFIG.md §6).
+
+FROM oven/bun:1-debian AS builder
+WORKDIR /app
+COPY package.json bun.lock ./
+COPY packages/config/package.json packages/config/
+COPY packages/contracts/package.json packages/contracts/
+COPY packages/db/package.json packages/db/
+COPY packages/engines/package.json packages/engines/
+COPY packages/errors/package.json packages/errors/
+COPY packages/logger/package.json packages/logger/
+COPY packages/queue/package.json packages/queue/
+COPY apps/api/package.json apps/api/
+COPY apps/seo/package.json apps/seo/
+COPY apps/web/package.json apps/web/
+COPY workers/shared/package.json workers/shared/
+COPY workers/light/package.json workers/light/
+COPY workers/office/package.json workers/office/
+COPY workers/heavy/package.json workers/heavy/
+COPY workers/ocr/package.json workers/ocr/
+RUN bun install --frozen-lockfile
+
+# The public origin baked into the sitemap and the static snapshot. The SPA itself
+# resolves the origin at runtime (`lib/seo.ts`), so one image serves any `$PUBLIC_HOST`.
+ARG SEO_SITE_URL=https://pdf.rumindium.id
+
+COPY package.json tsconfig.base.json tsconfig.json ./
+COPY packages ./packages
+COPY apps/web ./apps/web
+COPY apps/seo ./apps/seo
+RUN cd apps/web && SEO_SITE_URL=${SEO_SITE_URL} bun run build
+RUN cd apps/seo && SEO_SITE_URL=${SEO_SITE_URL} bun run build
+
+FROM nginx:alpine AS runtime
+# Templates are expanded by the nginx entrypoint at start, so the upstream is a deploy-time value rather than a
+# baked-in one — the same image runs in dev, CI, and production.
+COPY infra/nginx/default.conf.template /etc/nginx/templates/default.conf.template
+COPY infra/nginx/crawler-map.conf.template /etc/nginx/templates/crawler-map.conf.template
+COPY --from=builder /app/apps/web/dist /usr/share/nginx/html
+# The static snapshot: served only to known crawlers, at the same URLs as the SPA
+# (`default.conf.template` decides who gets which — same content, same canonicals).
+COPY --from=builder /app/apps/seo/dist /usr/share/nginx/snapshot
+# `host:port` without a scheme: the template writes `proxy_pass http://${API_UPSTREAM};`.
+ENV API_UPSTREAM=api:8080 \
+    NGINX_ENTRYPOINT_QUIET_LOGS=1
+EXPOSE 80

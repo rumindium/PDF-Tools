@@ -1,0 +1,14 @@
+# Rumindium PDF Tools
+
+Free online PDF tools with no signup and no watermark: merge, split, extract pages, reorder, rotate, crop, compress,
+repair, convert PDF to Word/Excel/images/HTML/PDF-A and back, OCR scans, add text and watermarks, page numbers,
+protect and unlock with passwords, redact, e-sign and fill forms.
+
+- Homepage: https://pdf.rumindium.id/
+- All tools: https://pdf.rumindium.id/tools
+- Every tool lives at https://pdf.rumindium.id/tools/<tool-id> (for example
+  https://pdf.rumindium.id/tools/merge, https://pdf.rumindium.id/tools/compress,
+  https://pdf.rumindium.id/tools/ocr).
+- Files delete themselves after every job; job history keeps metadata only.
+- Signed-in users get unlimited jobs; anonymous use is 15 jobs a day.
+- Sitemap: https://pdf.rumindium.id/sitemap.xml

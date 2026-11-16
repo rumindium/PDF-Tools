@@ -1,0 +1,145 @@
+---
+import { TOOLS } from '@pdftools/contracts/tools';
+import { toolSeo } from '../../../../../web/src/lib/seo';
+import Base from '../../../layouts/Base.astro';
+import { ID_TOOL_IDS, idToolCopy } from '../../../lib/id';
+
+// Indonesian tool pages — only the six translated tools (`ID_TOOL_IDS`). Same shape as the English twin, fully
+// translated copy, `inLanguage: 'id'`, self-canonical `/id/tools/<id>`, alternates naming the English page.
+export function getStaticPaths() {
+  return TOOLS.filter((tool) => (ID_TOOL_IDS as readonly string[]).includes(tool.id)).map((tool) => ({
+    params: { id: tool.id },
+    props: { tool },
+  }));
+}
+
+const { tool } = Astro.props;
+const copy = idToolCopy(tool.id);
+if (!copy) throw new Error(`no Indonesian copy for tool ${tool.id}`);
+const en = toolSeo({
+  id: tool.id,
+  title: tool.title,
+  summary: tool.summary,
+  category: tool.category,
+  maxFiles: tool.input.maxFiles,
+  extensions: tool.input.extensions,
+});
+const origin = en.canonical.replace(/\/tools\/[^/]+$/, '');
+const canonical = `${origin}/id/tools/${tool.id}`;
+const fileWords = tool.input.maxFiles > 1 ? `Unggah hingga ${tool.input.maxFiles} file` : 'Unggah satu dokumen';
+const formats = ` (${tool.input.extensions.join(', ').toUpperCase()})`;
+const description = `${copy.title}: ${copy.summary} Gratis online, tanpa daftar dan tanpa watermark. ${fileWords}${formats}, jalankan job di sesi browser Anda, dan unduh sebelum file terhapus otomatis.`;
+const steps = [
+  `Unggah file Anda ke ${copy.title}${formats}.`,
+  'Pilih opsi yang ditampilkan untuk tool ini.',
+  'Jalankan job dan unduh hasilnya sebelum terhapus otomatis.',
+];
+---
+
+<Base
+  title={`${copy.title} — Gratis Online | Rumindium PDF Tools`}
+  description={description}
+  canonicalPath={`/id/tools/${tool.id}/`}
+  ogType="article"
+  keywords={copy.keywords}
+  ogImage={en.ogImage}
+  alternates={[
+    { hrefLang: 'id', href: canonical },
+    { hrefLang: 'en', href: `${en.canonical}` },
+    { hrefLang: 'x-default', href: `${en.canonical}` },
+  ]}
+  jsonLd={[
+    {
+      '@context': 'https://schema.org',
+      '@type': 'WebPage',
+      name: copy.title,
+      url: canonical,
+      inLanguage: 'id',
+      description,
+      breadcrumb: {
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+          { '@type': 'ListItem', position: 1, name: 'Beranda', item: `${origin}/id` },
+          { '@type': 'ListItem', position: 2, name: 'Tool', item: `${origin}/id/tools` },
+          { '@type': 'ListItem', position: 3, name: copy.title, item: canonical },
+        ],
+      },
+    },
+    {
+      '@context': 'https://schema.org',
+      '@type': 'SoftwareApplication',
+      name: copy.title,
+      applicationCategory: 'UtilitiesApplication',
+      operatingSystem: 'Web',
+      url: canonical,
+      description: copy.summary,
+      inLanguage: 'id',
+      offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
+    },
+    {
+      '@context': 'https://schema.org',
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        { '@type': 'ListItem', position: 1, name: 'Beranda', item: `${origin}/id` },
+        { '@type': 'ListItem', position: 2, name: 'Tool', item: `${origin}/id/tools` },
+        { '@type': 'ListItem', position: 3, name: copy.title, item: canonical },
+      ],
+    },
+    {
+      '@context': 'https://schema.org',
+      '@type': 'HowTo',
+      name: `Cara memakai ${copy.title}`,
+      description,
+      inLanguage: 'id',
+      step: steps.map((text, index) => ({ '@type': 'HowToStep', position: index + 1, name: text, text })),
+    },
+    {
+      '@context': 'https://schema.org',
+      '@type': 'FAQPage',
+      mainEntity: [
+        {
+          '@type': 'Question',
+          name: `Apakah ${copy.title} gratis?`,
+          acceptedAnswer: {
+            '@type': 'Answer',
+            text: 'Ya — semua tool gratis, tanpa daftar dan tanpa watermark. Pengguna masuk mendapat job tanpa batas; anonim 15 job sehari.',
+          },
+        },
+        {
+          '@type': 'Question',
+          name: 'Apakah file saya disimpan?',
+          acceptedAnswer: {
+            '@type': 'Answer',
+            text: 'Tidak. Unggahan dan hasil dihapus otomatis saat job kedaluwarsa; riwayat hanya menyimpan metadata.',
+          },
+        },
+        {
+          '@type': 'Question',
+          name: `Apakah saya perlu menginstal sesuatu untuk memakai ${copy.title}?`,
+          acceptedAnswer: {
+            '@type': 'Answer',
+            text: 'Tidak. Tool berjalan di sesi browser Anda — unggah, jalankan, dan unduh, tanpa instal.',
+          },
+        },
+      ],
+    },
+  ]}
+>
+  <h1>{copy.title}</h1>
+  <p>{copy.summary}</p>
+  <h2>Cara kerja</h2>
+  <ol>
+    <li>Tambahkan hingga {tool.input.maxFiles} file ({tool.input.extensions.join(', ').toUpperCase()}).</li>
+    <li>Pilih opsi yang ditampilkan untuk tool ini.</li>
+    <li>Jalankan job dan unduh hasilnya sebelum masa berlakunya habis.</li>
+  </ol>
+  <h2>Batasan</h2>
+  <ul>
+    <li>Maks. file: {tool.input.maxFiles}</li>
+    <li>Menerima: {tool.input.extensions.join(', ')}</li>
+    <li>Keluaran: {tool.output.mime}{tool.output.archive ? ' (arsip)' : ''}</li>
+  </ul>
+  <p>
+    <a href="/id/tools/">Semua tool</a>
+  </p>
+</Base>

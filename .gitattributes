@@ -1,0 +1,48 @@
+# Line-ending and diff policy for the whole tree.
+#
+# The repository stores LF, so a Windows editor and the Linux CI runner agree on what "unchanged" means.
+# Before this file existed the working tree picked up CRLF from local tooling while every committed blob
+# was LF, so 351 files showed up as whole-file rewrites with no actual content change (`git diff
+# --ignore-cr-at-eol` is empty). `text=auto` normalizes on the way in; `eol=lf` writes LF back out on
+# checkout, so the churn cannot return.
+
+* text=auto eol=lf
+
+# Files whose bytes must survive a checkout untouched. `text=auto` normally guesses this correctly, but an
+# asset that happens to look like text is the one that gets corrupted silently, so name them explicitly.
+*.png    binary
+*.jpg    binary
+*.jpeg   binary
+*.gif    binary
+*.ico    binary
+*.webp   binary
+*.pdf    binary
+*.woff   binary
+*.woff2  binary
+*.ttf    binary
+*.eot    binary
+*.zip    binary
+*.gz     binary
+*.tar    binary
+*.nupkg  binary
+*.pem    binary
+
+# Text types git might otherwise guess wrong, forced to LF so the formatter gates (biome, tsc) and CI see
+# the same bytes on every machine.
+*.ts       text eol=lf
+*.tsx      text eol=lf
+*.js       text eol=lf
+*.mjs      text eol=lf
+*.cjs      text eol=lf
+*.json     text eol=lf
+*.yml      text eol=lf
+*.yaml     text eol=lf
+*.md       text eol=lf
+*.sql      text eol=lf
+*.css      text eol=lf
+*.html     text eol=lf
+*.svg      text eol=lf
+*.py       text eol=lf
+*.sh       text eol=lf
+Dockerfile* text eol=lf
+Caddyfile  text eol=lf
